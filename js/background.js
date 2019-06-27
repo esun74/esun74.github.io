@@ -37,7 +37,7 @@ scene.add(objects)
 var polygon = new THREE.Mesh(
 	new THREE.IcosahedronBufferGeometry(1, 0), 
 	new THREE.MeshStandardMaterial({
-		color: 0x014cc3,
+		color: 0x014CC3,
 		roughness: 0.5,
 		metalness: 0.75,
 }));
@@ -47,58 +47,69 @@ objects.add(polygon)
 
 
 //--------------------------------------------------
-var light1 = new THREE.PointLight(0xffffff, 1, 0);
-light1.position.set(2, 2, 2);
-scene.add(light1);
-
-var light2 = new THREE.PointLight(0xffffff, 1, 0);
-light2.position.set(-2, -2, -2);
-scene.add(light2);
-//--------------------------------------------------
-
-
-//--------------------------------------------------
 var particles = new THREE.BufferGeometry();
 
-var material = new THREE.PointsMaterial( {
-	color: 0xFFFFFF,
-	size: 3,
-	blending: THREE.AdditiveBlending,
-	transparent: true,
-	sizeAttenuation: false
-} );
-
 r = 5
-
-count = 20
-positions = []
-velocity = []
+count = 100
+positions = new Float32Array(count * 3);
+velocity = new Float32Array(count * 3);
+lights = []
 
 for (var i = 0; i < count * 3; i++) {
-	positions.push(Math.random() * r - r / 2)
-	velocity.push(new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1))
+	positions[i] = Math.random() * r - r / 2;
+	velocity[i] = Math.random() * .02 - .01;
 }
+
 particles.addAttribute(
 	'position', 
-	new THREE.Float32BufferAttribute(positions, 3).setDynamic(true)
+	new THREE.BufferAttribute(positions, 3).setDynamic(true)
 );
-cloud = new THREE.Points(particles, material);
+// particles.addAttribute(
+// 	'velocity',
+// 	new THREE.BufferAttribute(velocity, 3).setDynamic(true)
+// );
+
+cloud = new THREE.Points(particles, 
+	new THREE.PointsMaterial({
+		color: 0xFFFFFF,
+		size: .03,
+		blending: THREE.AdditiveBlending,
+		transparent: true,
+		// sizeAttenuation: false
+}));
 objects.add(cloud);
+
+for (var i = 0; i < count; i++) {
+	lights.push(new THREE.PointLight(0xffffff, .025, 0))
+	lights[lights.length - 1].position.set(
+		positions[3 * i + 0], 
+		positions[3 * i + 1], 
+		positions[3 * i + 2]
+	)
+	objects.add(lights[lights.length - 1])
+}
+
+//--------------------------------------------------
+
+
+//--------------------------------------------------
+
 //--------------------------------------------------
 
 
 //--------------------------------------------------
 var cubeWidth = 2
 var lineSegments = new THREE.LineSegments(
-	grid(cubeWidth, [1, 3, 5]), 
+	grid(cubeWidth, [3, 5]), 
 	new THREE.LineDashedMaterial({ 
-		color: 0xdff4ff,//0xffaa00,
+		// color: 0xffaa00,
+		// color: 0xdff4ff,
+		color: 0x101010,
 		dashSize: cubeWidth / 90, 
 		gapSize: cubeWidth / 10, 
 		scale: .005
 }));
 lineSegments.computeLineDistances();
-lineSegments.material.color.setHex(0x101010);
 lineSegments.material.blending = THREE.AdditiveBlending;
 lineSegments.material.transparent = true;
 objects.add(lineSegments)
@@ -118,6 +129,7 @@ function onWindowResize() {
 window.addEventListener('resize', onWindowResize, false);
 //--------------------------------------------------
 
+var g = .01
 
 //--------------------------------------------------
 var animate = function () {
@@ -126,6 +138,54 @@ var animate = function () {
 
 	objects.rotation.x += .001;
 	objects.rotation.y += .002;
+
+
+
+	for (var i = 0; i < count; i++) {
+
+		distance = 
+			Math.pow(
+			Math.pow(positions[3 * i + 0], 2) + 
+			Math.pow(positions[3 * i + 1], 2) + 
+			Math.pow(positions[3 * i + 2], 2), 1/2);
+
+
+		ratio = 1 / distance
+		positions[3 * i + 0] += g * (1 - distance) * positions[3 * i + 0] / distance;
+		positions[3 * i + 1] += g * (1 - distance) * positions[3 * i + 1] / distance;
+		positions[3 * i + 2] += g * (1 - distance) * positions[3 * i + 2] / distance;
+
+		for (var ii = 0; ii < count; ii++) {
+			if (i != ii) {
+				distance = 
+					Math.pow(positions[3 * ii + 0] - positions[3 * i + 0], 2) + 
+					Math.pow(positions[3 * ii + 1] - positions[3 * i + 1], 2) + 
+					Math.pow(positions[3 * ii + 2] - positions[3 * i + 2], 2);
+
+				if (distance < 1 && distance > .05) {
+					velocity[3 * i + 0] += g * g * g * (positions[3 * ii + 0] - positions[3 * i + 0]) / distance;
+					velocity[3 * i + 1] += g * g * g * (positions[3 * ii + 1] - positions[3 * i + 1]) / distance;
+					velocity[3 * i + 2] += g * g * g * (positions[3 * ii + 2] - positions[3 * i + 2]) / distance;
+				}
+			}
+
+		}
+
+
+		positions[3 * i + 0] += velocity[3 * i + 0];
+		positions[3 * i + 1] += velocity[3 * i + 1];
+		positions[3 * i + 2] += velocity[3 * i + 2];
+
+		lights[i].position.set(
+			positions[3 * i + 0], 
+			positions[3 * i + 1], 
+			positions[3 * i + 2]
+		)
+	}
+
+
+
+	cloud.geometry.attributes.position.needsUpdate = true;
 
 	renderer.render(scene, camera);
 	stats.end();
