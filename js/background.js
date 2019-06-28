@@ -36,7 +36,7 @@ scene.add(objects)
 //--------------------------------------------------
 var polygon = new THREE.Mesh(
 	new THREE.IcosahedronBufferGeometry(1, 0), 
-	new THREE.MeshStandardMaterial({
+	new THREE.MeshPhongMaterial({
 		color: 0x014CC3,
 		roughness: 0.5,
 		metalness: 0.75,
