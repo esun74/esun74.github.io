@@ -49,7 +49,7 @@ objects.add(polygon)
 //--------------------------------------------------
 var particles = new THREE.BufferGeometry();
 
-r = 5
+r = 2
 count = 100
 positions = new Float32Array(count * 3);
 velocity = new Float32Array(count * 3);
@@ -57,7 +57,8 @@ lights = []
 
 for (var i = 0; i < count * 3; i++) {
 	positions[i] = Math.random() * r - r / 2;
-	velocity[i] = Math.random() * .02 - .01;
+	positions[i] += positions[i] > 0 ? 1 : -1
+	velocity[i] = Math.random();
 }
 
 particles.addAttribute(
@@ -129,7 +130,7 @@ function onWindowResize() {
 window.addEventListener('resize', onWindowResize, false);
 //--------------------------------------------------
 
-var g = .01
+var g = .05;
 
 //--------------------------------------------------
 var animate = function () {
@@ -150,31 +151,32 @@ var animate = function () {
 			Math.pow(positions[3 * i + 2], 2), 1/2);
 
 
-		ratio = 1 / distance
-		positions[3 * i + 0] += g * (1 - distance) * positions[3 * i + 0] / distance;
-		positions[3 * i + 1] += g * (1 - distance) * positions[3 * i + 1] / distance;
-		positions[3 * i + 2] += g * (1 - distance) * positions[3 * i + 2] / distance;
+		// ratio = 1 / distance
+		// positions[3 * i + 0] += g * (2 - distance) * positions[3 * i + 0] / distance;
+		// positions[3 * i + 1] += g * (2 - distance) * positions[3 * i + 1] / distance;
+		// positions[3 * i + 2] += g * (2 - distance) * positions[3 * i + 2] / distance;
 
-		for (var ii = 0; ii < count; ii++) {
-			if (i != ii) {
-				distance = 
-					Math.pow(positions[3 * ii + 0] - positions[3 * i + 0], 2) + 
-					Math.pow(positions[3 * ii + 1] - positions[3 * i + 1], 2) + 
-					Math.pow(positions[3 * ii + 2] - positions[3 * i + 2], 2);
+		// for (var ii = 0; ii < count; ii++) {
+		// 	if (i != ii) {
+		// 		distance = 
+		// 			Math.pow(positions[3 * ii + 0] - positions[3 * i + 0], 2) + 
+		// 			Math.pow(positions[3 * ii + 1] - positions[3 * i + 1], 2) + 
+		// 			Math.pow(positions[3 * ii + 2] - positions[3 * i + 2], 2);
 
-				if (distance < 1 && distance > .05) {
-					velocity[3 * i + 0] += g * g * g * (positions[3 * ii + 0] - positions[3 * i + 0]) / distance;
-					velocity[3 * i + 1] += g * g * g * (positions[3 * ii + 1] - positions[3 * i + 1]) / distance;
-					velocity[3 * i + 2] += g * g * g * (positions[3 * ii + 2] - positions[3 * i + 2]) / distance;
-				}
-			}
+		// 		if (distance < 1 && distance > .25) {
+		// 			positions[3 * i + 0] += g * g * g * (positions[3 * ii + 0] - positions[3 * i + 0]) / distance;
+		// 			positions[3 * i + 1] += g * g * g * (positions[3 * ii + 1] - positions[3 * i + 1]) / distance;
+		// 			positions[3 * i + 2] += g * g * g * (positions[3 * ii + 2] - positions[3 * i + 2]) / distance;
+		// 		}
+		// 	}
 
-		}
+		// }
 
 
-		positions[3 * i + 0] += velocity[3 * i + 0];
-		positions[3 * i + 1] += velocity[3 * i + 1];
-		positions[3 * i + 2] += velocity[3 * i + 2];
+		positions[3 * i + 0] = distance * Math.sin(performance.now() / 1000 * (0.1 + velocity[3 * i + 0])) * Math.cos(performance.now() / 10000 * velocity[3 * i + 1]);
+		positions[3 * i + 1] = distance * Math.sin(performance.now() / 1000 * (0.1 + velocity[3 * i + 0])) * Math.sin(performance.now() / 10000 * velocity[3 * i + 1]);
+		positions[3 * i + 2] = distance * Math.cos(performance.now() / 1000 * (0.1 + velocity[3 * i + 0]));
+		// velocity[3 * i + 2] + (i % 4) * velocity[3 * i + 0] - (i % 2) * velocity[3 * i + 2];
 
 		lights[i].position.set(
 			positions[3 * i + 0], 
