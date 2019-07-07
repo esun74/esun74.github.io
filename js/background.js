@@ -61,7 +61,7 @@ objects.add(polygon)
 var particles = new THREE.BufferGeometry();
 
 r = 2
-count = 30
+count = 50
 positions = new Float32Array(count * 3);
 velocity = new Float32Array(count * 3);
 lights = []
@@ -109,7 +109,7 @@ for (var i = 0; i < count; i++) {
 //--------------------------------------------------
 var geometry = new THREE.BufferGeometry();
 
-lineLength = 5 * 2
+lineLength = 10 * 2
 linePositions = new Float32Array(count * 3 * lineLength)
 lineColors = new Float32Array(count * 3 * lineLength)
 
@@ -182,9 +182,9 @@ window.addEventListener('resize', onWindowResize, false);
 
 var g = .05;
 var distances = [];
-var max_distance = 1;
+var max_distance = 2;
 var alphas = [];
-// objects.rotation.x = 1.5
+objects.rotation.x = 1.5
 
 //--------------------------------------------------
 var animate = function () {
