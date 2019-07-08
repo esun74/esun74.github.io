@@ -1,4 +1,4 @@
-
+// Performance Statistics
 //--------------------------------------------------
 var stats = new Stats();
 stats.showPanel( 1 ); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -6,19 +6,24 @@ document.body.appendChild( stats.dom );
 //--------------------------------------------------
 
 
+// Setting the Scene
 //--------------------------------------------------
 var scene = new THREE.Scene(); 
-scene.background = new THREE.Color(0x111111);
-// scene.fog = new THREE.Fog(0x111111, 3, 6);
+// scene.background = new THREE.Color(0x111111);
+// scene.fog = new THREE.Fog(0x111111, 0, 0);
+scene.background = new THREE.Color(0x000000);
+scene.fog = new THREE.Fog(0x000000, 0, 0);
 //--------------------------------------------------
 
 
+// Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 camera.position.z = 5;
 //--------------------------------------------------
 
 
+// Configuring the Renderer and adding it to the DOM
 //--------------------------------------------------
 var renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -27,13 +32,14 @@ document.body.appendChild(renderer.domElement);
 //--------------------------------------------------
 
 
+// Creating a group to hold objects
 //--------------------------------------------------
 var objects = new THREE.Group();
 scene.add(objects)
 //--------------------------------------------------
 
 
-
+// Create center polygon
 // MeshBasicMaterial
 // MeshDepthMaterial
 // MeshDistanceMaterial
@@ -57,6 +63,7 @@ objects.add(polygon)
 //--------------------------------------------------
 
 
+// Particle Cloud
 //--------------------------------------------------
 var particles = new THREE.BufferGeometry();
 
@@ -82,6 +89,7 @@ particles.addAttribute(
 // 	new THREE.BufferAttribute(velocity, 3).setDynamic(true)
 // );
 
+// geometry, material
 cloud = new THREE.Points(particles, 
 	new THREE.PointsMaterial({
 		color: 0xFFFFFF,
@@ -106,6 +114,7 @@ for (var i = 0; i < count; i++) {
 //--------------------------------------------------
 
 
+// Connections
 //--------------------------------------------------
 var geometry = new THREE.BufferGeometry();
 
@@ -147,6 +156,7 @@ objects.add(linesMesh);
 //--------------------------------------------------
 
 
+// Dotted Grid Background
 //--------------------------------------------------
 var cubeWidth = 2
 var lineSegments = new THREE.LineSegments(
@@ -167,10 +177,7 @@ objects.add(lineSegments);
 //--------------------------------------------------
 
 
-//--------------------------------------------------
-//--------------------------------------------------
-
-
+// Dynamic Canvas Sizing
 //--------------------------------------------------
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
@@ -180,12 +187,19 @@ function onWindowResize() {
 window.addEventListener('resize', onWindowResize, false);
 //--------------------------------------------------
 
+
+// Initializing some variables
+//--------------------------------------------------
 var g = .05;
 var distances = [];
 var max_distance = 2;
 var alphas = [];
-objects.rotation.x = 1.5
+var now = 0;
+objects.rotation.x = .2
+//--------------------------------------------------
 
+
+// Operations each frame
 //--------------------------------------------------
 var animate = function () {
 	stats.begin();
@@ -197,6 +211,15 @@ var animate = function () {
 	polygon.rotation.x -= .004;
 
 
+	now = 20000 + performance.now();
+
+	if (scene.fog.near < 8) {
+		scene.fog.near += .015;
+	}
+	if (scene.fog.far < 16) {
+		scene.fog.far += .025;
+	}
+
 	for (var i = 0; i < count; i++) {
 
 		distance = 
@@ -205,9 +228,9 @@ var animate = function () {
 			Math.pow(positions[3 * i + 1], 2) + 
 			Math.pow(positions[3 * i + 2], 2), 1/2);
 
-		positions[3 * i + 0] = distance * Math.sin(performance.now() / 2000 * (0.1 + velocity[3 * i + 0])) * Math.cos(performance.now() / 2000 * (velocity[3 * i + 1] * .1));
-		positions[3 * i + 1] = distance * Math.sin(performance.now() / 2000 * (0.1 + velocity[3 * i + 0])) * Math.sin(performance.now() / 2000 * (velocity[3 * i + 1] * .1));
-		positions[3 * i + 2] = distance * Math.cos(performance.now() / 2000 * (0.1 + velocity[3 * i + 0]));
+		positions[3 * i + 0] = distance * Math.sin(now / 2000 * (0.1 + velocity[3 * i + 0])) * Math.cos(now / 5000 * (velocity[3 * i + 1] * .1));
+		positions[3 * i + 1] = distance * Math.sin(now / 2000 * (0.1 + velocity[3 * i + 0])) * Math.sin(now / 5000 * (velocity[3 * i + 1] * .1));
+		positions[3 * i + 2] = distance * Math.cos(now / 2000 * (0.1 + velocity[3 * i + 0]));
 
 
 		lights[i].position.set(
@@ -266,12 +289,6 @@ var animate = function () {
 				for (var b = 0; b < 6; b++) {
 					linePositions[6 * (a + (i * lineLength / 2)) + b] = 0
 				}
-				// linePositions[6 * (a + (i * lineLength / 2)) + 0] = 0
-				// linePositions[6 * (a + (i * lineLength / 2)) + 1] = 0
-				// linePositions[6 * (a + (i * lineLength / 2)) + 2] = 0
-				// linePositions[6 * (a + (i * lineLength / 2)) + 3] = 0
-				// linePositions[6 * (a + (i * lineLength / 2)) + 4] = 0
-				// linePositions[6 * (a + (i * lineLength / 2)) + 5] = 0
 			}
 
 		}
@@ -293,8 +310,6 @@ var animate = function () {
 };
 //--------------------------------------------------
 
-document.body.addEventListener('click', () => {window.location.reload()}, true); 
+// document.body.addEventListener('click', () => {window.location.reload()}, true); 
 
 animate();
-
-
