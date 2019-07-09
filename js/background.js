@@ -1,7 +1,7 @@
 // Performance Statistics
 //--------------------------------------------------
 var stats = new Stats();
-stats.showPanel( 1 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 //--------------------------------------------------
 
@@ -52,8 +52,8 @@ scene.add(objects)
 //--------------------------------------------------
 var polygon = new THREE.Mesh(
 	new THREE.IcosahedronBufferGeometry(1, 0), 
-	new THREE.MeshStandardMaterial({
-	// new THREE.MeshPhysicalMaterial({
+	// new THREE.MeshStandardMaterial({
+	new THREE.MeshPhysicalMaterial({
 		color: 0x014CC3,
 		roughness: 0.5,
 		metalness: 0.75,
@@ -77,7 +77,7 @@ for (var i = 0; i < count * 3; i++) {
 	positions[i] = Math.random() * r - r / 2;
 	// positions[i] = i / 50
 	positions[i] += positions[i] > 0 ? 1 : -1
-	velocity[i] = Math.random();
+	velocity[i] = Math.random() / 5;
 }
 
 particles.addAttribute(
@@ -149,7 +149,7 @@ var material = new THREE.LineBasicMaterial({
 	vertexColors: THREE.VertexColors,
 	blending: THREE.AdditiveBlending,
 	transparent: true,
-	opacity: 0.2
+	opacity: 0.25
 });
 var linesMesh = new THREE.LineSegments(geometry, material);
 objects.add(linesMesh);
@@ -177,6 +177,20 @@ objects.add(lineSegments);
 //--------------------------------------------------
 
 
+// Raycaster
+//--------------------------------------------------
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+var intersects = []
+function onMouseMove(event) {
+	event.preventDefault();
+	mouse.x = + (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+}
+window.addEventListener('mousemove', onMouseMove, false);
+//--------------------------------------------------
+
+
 // Dynamic Canvas Sizing
 //--------------------------------------------------
 function onWindowResize() {
@@ -192,7 +206,7 @@ window.addEventListener('resize', onWindowResize, false);
 //--------------------------------------------------
 var g = .05;
 var distances = [];
-var max_distance = 2;
+var max_distance = 1.6;
 var alphas = [];
 var now = 0;
 objects.rotation.x = .2
@@ -211,7 +225,7 @@ var animate = function () {
 	polygon.rotation.x -= .004;
 
 
-	now = 20000 + performance.now();
+	now = 200000 + performance.now();
 
 	if (scene.fog.near < 8) {
 		scene.fog.near += .015;
@@ -295,6 +309,22 @@ var animate = function () {
 	}
 
 
+	raycaster.setFromCamera(mouse, camera);
+	intersects = raycaster.intersectObject(polygon);
+	if (intersects.length > 0) {
+		if (polygon.scale.x < 1.2) {
+			polygon.scale.x += .1;
+			polygon.scale.y += .1;
+			polygon.scale.z += .1;
+		}
+	} else {
+		if (polygon.scale.x > 1) {
+			polygon.scale.x -= .2;
+			polygon.scale.y -= .2;
+			polygon.scale.z -= .2;
+		}
+	}
+
 	cloud.geometry.attributes.position.needsUpdate = true;
 
 	linesMesh.geometry.setDrawRange(0, 1000000)
@@ -306,7 +336,6 @@ var animate = function () {
 
 	renderer.render(scene, camera);
 	stats.end();
-
 };
 //--------------------------------------------------
 
