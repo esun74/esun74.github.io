@@ -181,13 +181,34 @@ objects.add(lineSegments);
 //--------------------------------------------------
 var raycaster = new THREE.Raycaster();
 var mouse = new THREE.Vector2();
-var intersects = []
+var intersects = [];
+var clicked = false;
 function onMouseMove(event) {
 	event.preventDefault();
 	mouse.x = + (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 }
 window.addEventListener('mousemove', onMouseMove, false);
+
+function onMouseDown(event) {
+	event.preventDefault();
+
+	raycaster.setFromCamera(mouse, camera);
+	intersects = raycaster.intersectObject(polygon);
+
+	clicked = intersects.length > 0;
+}
+window.addEventListener('mousedown', onMouseDown, false);
+
+function onMouseUp(event) {
+	event.preventDefault();
+
+	raycaster.setFromCamera(mouse, camera);
+	intersects = raycaster.intersectObject(polygon);
+
+	clicked = false;
+}
+window.addEventListener('mouseup', onMouseUp, false);
 //--------------------------------------------------
 
 
@@ -221,8 +242,8 @@ var animate = function () {
 
 	objects.rotation.x += .001;
 	objects.rotation.y += .002;
-	polygon.rotation.z -= .003;
-	polygon.rotation.x -= .004;
+	// polygon.rotation.z -= .003;
+	// polygon.rotation.x -= .004;
 
 
 	now = 200000 + performance.now();
@@ -309,19 +330,21 @@ var animate = function () {
 	}
 
 
-	raycaster.setFromCamera(mouse, camera);
-	intersects = raycaster.intersectObject(polygon);
-	if (intersects.length > 0) {
-		if (polygon.scale.x < 1.2) {
-			polygon.scale.x += .1;
-			polygon.scale.y += .1;
-			polygon.scale.z += .1;
+	// raycaster.setFromCamera(mouse, camera);
+	// intersects = raycaster.intersectObject(polygon);
+	if (clicked) {
+		polygon.rotation.x += polygon.scale.x / 2;
+		polygon.rotation.y += polygon.scale.y / 5;
+		if (polygon.scale.x > .5) {
+			polygon.scale.x -= .2;
+			polygon.scale.y -= .2;	
+			polygon.scale.z -= .2;
 		}
 	} else {
-		if (polygon.scale.x > 1) {
-			polygon.scale.x -= .2;
-			polygon.scale.y -= .2;
-			polygon.scale.z -= .2;
+		if (polygon.scale.x <= 1) {
+			polygon.scale.x += .2;
+			polygon.scale.y += .2;
+			polygon.scale.z += .2;
 		}
 	}
 
