@@ -35,7 +35,7 @@ camera.position.z = 5;
 
 // Configuring the Renderer and adding it to the DOM
 //--------------------------------------------------
-var renderer = new THREE.WebGLRenderer({antialias: true});
+var renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -46,55 +46,6 @@ document.body.appendChild(renderer.domElement);
 var objects = new THREE.Group();
 scene.add(objects)
 //--------------------------------------------------
-
-// Create points
-//--------------------------------------------------
-var particles = new THREE.BufferGeometry();
-
-r = 2
-count = 3
-positions = new Float32Array(count * 3);
-velocity = new Float32Array(count * 3);
-mass = Array.from({length: count}, () => Math.random() / 10000000)
-
-for (var i = 0; i < count * 3; i++) {
-	positions[i] = Math.random() * r - r / 2;
-	positions[i] += positions[i] > 0 ? 1 : -1
-	velocity[i] = (Math.random() - 0.5) / 10;
-}
-
-particles.addAttribute(
-	'position', 
-	new THREE.BufferAttribute(positions, 3).setDynamic(true)
-);
-cloud = new THREE.Points(particles, 
-	new THREE.PointsMaterial({
-		// color: 0xFFFFFF,
-		color: 0xFFAA00, 
-		// size: 0.05,
-		size: 3.00,
-		blending: THREE.AdditiveBlending,
-		transparent: true,
-		opacity: 0.5,
-		sizeAttenuation: false,
-}));
-objects.add(cloud);
-//--------------------------------------------------
-
-gravitons = [
-				-1, -1, -1, .01,
-				+1, -1, +1, .01,
-				-1, +1, +1, .01,
-				// -2, -2, -2, .01,
-				// -2, -2, +2, .01,
-				// -2, +2, -2, .01,
-				// -2, +2, +2, .01,
-				// +2, -2, -2, .01,
-				// +2, -2, +2, .01,
-				// +2, +2, -2, .01,
-				// +2, +2, +2, .01,
-			]
-
 
 // Dotted Grid Background
 //--------------------------------------------------
@@ -116,44 +67,80 @@ lineSegments.material.transparent = true;
 objects.add(lineSegments);
 //--------------------------------------------------
 
-// temp line
 
-// geometry
-var MAX_POINTS = 200
-var geometries = Array.from({length: count}, () => new THREE.BufferGeometry())
-var geometry_points = Array.from({length: count}, () => new Float32Array(MAX_POINTS * 3))
-var material = new THREE.LineBasicMaterial({
-	color: 0xFFAA00,
-	linewidth: 2,
+
+
+// Create points
+//--------------------------------------------------
+var particles = new THREE.BufferGeometry();
+
+count = 100
+positions = new Float32Array(count * 3);
+velocity = new Float32Array(count * 3);
+
+material = new THREE.PointsMaterial({
+	// color: 0xFFFFFF,
+	color: 0xFFAA00, 
+	size: 0.05,
+	// size: 3.00,
+	blending: THREE.AdditiveBlending,
+	transparent: true,
+	opacity: 0.25,
+	// sizeAttenuation: false,
 })
-var geometry_lines = []
 
+material = new THREE.ShaderMaterial({
+	uniforms: {
+		color: {value: new THREE.Color(0xFFFFFF)}
+	},
 
-for (var i = 0; i < count; i++) {
-	for (var j = 0; j < MAX_POINTS * 3; j++) {
-		geometry_points[i][j] = 0
-	}
-	geometries[i].addAttribute('position', new THREE.BufferAttribute(geometry_points[i], 3))
+	vertexShader: `
 
-	geometry_lines.push(new THREE.Line(geometries[i], material))
-	objects.add(geometry_lines[i])
+		varying float object_distance;
+
+		void main() {
+			object_distance = -(modelViewMatrix * vec4(position, 1.0)).z;
+			gl_PointSize = max(7.0, pow(object_distance / 1.5, 2.0));
+			gl_Position = 	projectionMatrix * 
+							modelViewMatrix * 
+							vec4(position, 1.0);
+		}
+	`,
+
+	fragmentShader: `
+		varying float object_distance;
+
+		void main() {
+			// if(length(gl_PointCoord - vec2(0.5, 0.5)) > 0.475) discard;
+			// if((abs(gl_PointCoord.x - 0.5) * 1.0) + (abs(1.0 - gl_PointCoord.y)) * 2.0) discard;
+			if(((abs(gl_PointCoord.x - 0.5) > (2.0 * 0.125)) || (abs(gl_PointCoord.y - 0.5) > (sqrt(3.0) * 0.125))) ||
+			 (((abs(gl_PointCoord.x - 0.5) * 4.0) + (4.0 / sqrt(3.0) * abs(gl_PointCoord.y - 0.5))) > 1.0)) {
+				gl_FragColor = vec4(0.0, 0.0, 1.0, (0.5 - length(gl_PointCoord - vec2(0.5, 0.5))) * min(1.0, 40.0 / pow(object_distance, 2.0)));
+			} else {
+				gl_FragColor = vec4(0.0, 0.0, 1.0, 40.0 / pow(object_distance, 2.0));
+			}
+
+		}
+	`,
+
+	transparent: true,
+	depthWrite: false,
+})
+
+for (var i = 0; i < count * 3; i++) {
+	positions[i] = (Math.random() - 0.5) * 10;
+	velocity[i] = (Math.random() - 0.5) / 10;
 }
 
-
-// var geometry = new THREE.BufferGeometry()
-
-// ps = new Float32Array(MAX_POINTS * 3)
-// for (var i = 0; i < MAX_POINTS * 3; i++) {
-// 	ps[i] = 0
-// }
-// geometry.addAttribute('position', new THREE.BufferAttribute(ps, 3))
-
-// // material
+particles.addAttribute(
+	'position', 
+	new THREE.BufferAttribute(positions, 3).setDynamic(true)
+);
+cloud = new THREE.Points(particles, material);
+objects.add(cloud);
+//--------------------------------------------------
 
 
-// // line
-// line = new THREE.Line(geometry, material)
-// objects.add(line)
 
 
 
@@ -163,73 +150,10 @@ var animate = function () {
 	stats.begin();
 	requestAnimationFrame(animate);
 
+	// objects.position.z = -7.5
 	objects.rotation.x = .1;
 	objects.rotation.y -= .002;
 
-	for (var i = 0; i < count; i++) {
-
-		acceleration = [0, 0, 0]
-
-		for (var j = 0; j < (gravitons.length / 4); j++) {
-
-			distance_squared = (
-					Math.pow(gravitons[4 * j + 0] - positions[3 * i + 0], 2) + 
-					Math.pow(gravitons[4 * j + 1] - positions[3 * i + 1], 2) + 
-					Math.pow(gravitons[4 * j + 2] - positions[3 * i + 2], 2)
-				)
-
-			acceleration[0] += gravitons[4 * j + 3] * (gravitons[4 * j + 0] - positions[3 * i + 0]) / distance_squared
-			acceleration[1] += gravitons[4 * j + 3] * (gravitons[4 * j + 1] - positions[3 * i + 1]) / distance_squared
-			acceleration[2] += gravitons[4 * j + 3] * (gravitons[4 * j + 2] - positions[3 * i + 2]) / distance_squared
-		}
-
-		// for (var j = 0; j < count; j++) {
-		// 	if (i != j) {
-		// 		distance_squared = (
-		// 				Math.pow(positions[3 * j + 0] - positions[3 * i + 0], 2) + 
-		// 				Math.pow(positions[3 * j + 1] - positions[3 * i + 1], 2) + 
-		// 				Math.pow(positions[3 * j + 2] - positions[3 * i + 2], 2)
-		// 			)
-
-		// 		acceleration[0] += mass[j] * (positions[3 * j + 0] - positions[3 * i + 0]) / distance_squared
-		// 		acceleration[1] += mass[j] * (positions[3 * j + 1] - positions[3 * i + 1]) / distance_squared
-		// 		acceleration[2] += mass[j] * (positions[3 * j + 2] - positions[3 * i + 2]) / distance_squared
-		// 	}
-		// }
-
-		// console.log(acceleration)
-
-		// 	positions[3 * i + 0] = distance * Math.sin(now / 200 * (0.1 + velocity[3 * i + 0])) * Math.cos(now / 500 * (velocity[3 * i + 1] * .1));
-		// 	positions[3 * i + 1] = distance * Math.sin(now / 200 * (0.1 + velocity[3 * i + 0])) * Math.sin(now / 500 * (velocity[3 * i + 1] * .1));
-		// 	positions[3 * i + 2] = distance * Math.cos(now / 200 * (0.1 + velocity[3 * i + 0]));
-
-		// console.log(geometry_points[i][geometry_points[i].length - 1])
-		for (var j = 0; j < geometry_points[i].length - 3; j++) {
-			if ((geometry_points[i][j] == 0) && (geometry_points[i][j + 2] == 0)) {
-				geometry_lines[i].geometry.setDrawRange(j / 3, geometry_points[i].length / 3);
-			}
-			geometry_points[i][j] = geometry_points[i][j + 3]
-		}
-		geometry_points[i][geometry_points[i].length - 3] = positions[3 * i + 0]
-		geometry_points[i][geometry_points[i].length - 2] = positions[3 * i + 1]
-		geometry_points[i][geometry_points[i].length - 1] = positions[3 * i + 2]
-
-		geometry_lines[i].geometry.attributes.position.needsUpdate = true;
-
-		velocity[3 * i + 0] += acceleration[0] - (.1 * Math.pow(velocity[3 * i + 0], 2) * Math.sign(velocity[3 * i + 0]))
-		velocity[3 * i + 1] += acceleration[1] - (.1 * Math.pow(velocity[3 * i + 1], 2) * Math.sign(velocity[3 * i + 1]))
-		velocity[3 * i + 2] += acceleration[2] - (.1 * Math.pow(velocity[3 * i + 2], 2) * Math.sign(velocity[3 * i + 2]))
-
-
-		positions[3 * i + 0] += velocity[3 * i + 0];
-		positions[3 * i + 1] += velocity[3 * i + 1];
-		positions[3 * i + 2] += velocity[3 * i + 2];
-
-	}
-
-
-
-	cloud.geometry.attributes.position.needsUpdate = true;
 
 	renderer.render(scene, camera);
 	stats.end();
