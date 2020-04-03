@@ -248,19 +248,19 @@ for (var i = 0; i < count; i++) {
 
 var particles = new THREE.BufferGeometry();
 
-number_of_particles = 10
+number_of_particles = 100
 positions = new Float32Array(number_of_particles * 3)
-distance_traveled_per_frame = 0.5
+distance_traveled_per_frame = 0.1
 line_choices = [...Array(number_of_particles)].map(x => Math.floor(Math.random() * count))
 line_locations = [...Array(number_of_particles)].map(x => Math.floor(Math.random() * line_length))
 
 material = new THREE.PointsMaterial({
 	color: 0xFFFFFF,
-	size: 0.25,
+	size: 3.0,
 	blending: THREE.AdditiveBlending,
-	transparent: true,
-	opacity: 0.75,
-	sizeAttenuation: true,
+	// transparent: true,
+	// opacity: 0.75,
+	sizeAttenuation: false,
 })
 
 
@@ -277,10 +277,6 @@ particles.addAttribute(
 cloud = new THREE.Points(particles, material);
 central_objects.add(cloud);
 
-
-const lerp = function(a, b, f) {
-	return [f * (a[0] - b[0]) + a[0], f * (a[1] - b[1]) + a[1], f * (a[2] - b[2]) + a[2]]
-}
 
 //--------------------------------------------------
 
@@ -303,13 +299,36 @@ var animate = function () {
 
 
 	for (var i = 0; i < number_of_particles; i++) {
-		line_locations[i] -= 1
-		if (line_locations[i] < 0) {
-			line_locations[i] = line_length
+		var travel_distance = distance_traveled_per_frame
+		while (travel_distance > 0) {
+			var distance_to_next_point = Math.sqrt(
+				Math.pow(positions[3 * i + 0] - geometry_cores[line_choices[i]][3 * line_locations[i] + 0], 2) + 
+				Math.pow(positions[3 * i + 1] - geometry_cores[line_choices[i]][3 * line_locations[i] + 1], 2) + 
+				Math.pow(positions[3 * i + 2] - geometry_cores[line_choices[i]][3 * line_locations[i] + 2], 2)
+			)
+			if (distance_to_next_point == 0) {
+				line_locations[i] = (line_locations[i] < 0) ? line_length - 2 : line_locations[i] - 1;
+			} else if (travel_distance < distance_to_next_point) {
+				positions[3 * i + 0] += (geometry_cores[line_choices[i]][3 * line_locations[i] + 0] - positions[3 * i + 0]) * (travel_distance / distance_to_next_point)
+				positions[3 * i + 1] += (geometry_cores[line_choices[i]][3 * line_locations[i] + 1] - positions[3 * i + 1]) * (travel_distance / distance_to_next_point)
+				positions[3 * i + 2] += (geometry_cores[line_choices[i]][3 * line_locations[i] + 2] - positions[3 * i + 2]) * (travel_distance / distance_to_next_point)
+				travel_distance = 0
+
+			} else {
+				positions[3 * i + 0] = geometry_cores[line_choices[i]][3 * line_locations[i] + 0];
+				positions[3 * i + 1] = geometry_cores[line_choices[i]][3 * line_locations[i] + 1];
+				positions[3 * i + 2] = geometry_cores[line_choices[i]][3 * line_locations[i] + 2];
+				line_locations[i] = (line_locations[i] < 0) ? line_length - 2 : line_locations[i] - 1;
+				travel_distance -= distance_to_next_point
+			}
 		}
-		positions[3 * i + 0] = geometry_cores[line_choices[i]][3 * line_locations[i] + 0];
-		positions[3 * i + 1] = geometry_cores[line_choices[i]][3 * line_locations[i] + 1];
-		positions[3 * i + 2] = geometry_cores[line_choices[i]][3 * line_locations[i] + 2];
+
+		for (var x = 0; x < 3; x++) {
+			if (isNaN(positions[3 * i + x])) {
+				positions[3 * i + x] = geometry_cores[line_choices[i]][3 * line_locations[i] + x]
+			}
+		}
+		
 	}
 
 	cloud.geometry.attributes.position.needsUpdate = true;
