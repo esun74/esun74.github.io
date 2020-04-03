@@ -137,13 +137,13 @@ class Point_Cloud {
 	}
 }
 
-var green_cloud = new Point_Cloud(100, 0x40FFC0, 10, 1)
+var green_cloud = new Point_Cloud(100, 0x40FFC0, 10, .1)
 objects.add(green_cloud.cloud)
 
-var red_cloud = new Point_Cloud(25, 0xFF6040, 10, 1)
+var red_cloud = new Point_Cloud(25, 0xFF6040, 10, .1)
 objects.add(red_cloud.cloud)
 
-var blue_cloud = new Point_Cloud(10, 0x4080FF, 10, 1)
+var blue_cloud = new Point_Cloud(10, 0x4080FF, 10, .1)
 objects.add(blue_cloud.cloud)
 
 //--------------------------------------------------
@@ -256,11 +256,11 @@ line_locations = [...Array(number_of_particles)].map(x => Math.floor(Math.random
 
 material = new THREE.PointsMaterial({
 	color: 0xFFFFFF,
-	size: 3.0,
+	size: 0.2,
 	blending: THREE.AdditiveBlending,
 	// transparent: true,
 	// opacity: 0.75,
-	sizeAttenuation: false,
+	sizeAttenuation: true,
 })
 
 
