@@ -34,7 +34,7 @@ camera.rotation.y = .25
 
 // Mouse Position
 //--------------------------------------------------
-// var raycaster = new THREE.Raycaster()
+var raycaster = new THREE.Raycaster()
 var mouse = new THREE.Vector2()
 
 function onMouseMove( event ) {
@@ -365,6 +365,37 @@ var spiral = new Spiral_Funnel(central_objects, 3, 50, 0.1, 0.05, 0.2, 5, 100, 0
 
 //--------------------------------------------------
 
+// Text
+//--------------------------------------------------
+var font = 0
+
+var loader = new THREE.FontLoader();
+loader.load('js/gentilis_bold.typeface.json', function (font) {
+
+	var title = new THREE.TextGeometry('hello', {
+		font: font,
+		size: 5, 
+		curveSegments: 5,
+		bevelThickness: 5,
+		bevelSize: 5,
+		bevelEnabled: true,
+	})
+
+	var title_material = new THREE.MeshPhongMaterial({
+		color: 0xffffff, 
+		flatShading: true
+	})
+
+	var title_mesh = new THREE.Mesh(title, title_material)
+	objects.add(title_mesh)
+
+})
+
+
+
+
+//--------------------------------------------------
+
 // State
 //--------------------------------------------------
 var state = 'Index'
@@ -376,7 +407,7 @@ var state = 'Index'
 var animate = function () {
 	stats.begin()
 	requestAnimationFrame(animate)
-	// raycaster.setFromCamera(mouse, camera)
+	raycaster.setFromCamera(mouse, camera)
 
 	if (state == 'Index') {
 		objects.rotation.y += 0.75
