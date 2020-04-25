@@ -4,7 +4,7 @@
 var stats = new Stats()
 stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild(stats.dom)
-document.body.addEventListener('click', () => {window.location.reload()}, true)
+// document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
 
 // Dynamic Canvas Sizing
@@ -20,8 +20,8 @@ window.addEventListener('resize', onWindowResize, false)
 // Setting the Scene
 //--------------------------------------------------
 var scene = new THREE.Scene()
-// scene.background = new THREE.Color(0x111111)
-scene.background = new THREE.Color(0x222222)
+scene.background = new THREE.Color(0x1c1c1c)
+// scene.background = new THREE.Color(0x222222)
 //--------------------------------------------------
 
 
@@ -153,13 +153,13 @@ class Point_Cloud {
 	}
 }
 
-var green_cloud = new Point_Cloud(100, 0x40FFC0, 10, .1)
+var green_cloud = new Point_Cloud(100, 0x40FFC0, 10, .5)
 objects.add(green_cloud.cloud)
 
-var red_cloud = new Point_Cloud(10, 0xFF6040, 10, .1)
+var red_cloud = new Point_Cloud(10, 0xFF6040, 10, .5)
 objects.add(red_cloud.cloud)
 
-var blue_cloud = new Point_Cloud(10, 0x4080FF, 10, .1)
+var blue_cloud = new Point_Cloud(10, 0x4080FF, 10, .5)
 objects.add(blue_cloud.cloud)
 
 //--------------------------------------------------
@@ -367,29 +367,30 @@ var spiral = new Spiral_Funnel(central_objects, 3, 50, 0.1, 0.05, 0.2, 5, 100, 0
 
 // Text
 //--------------------------------------------------
-var font = 0
 
-var loader = new THREE.FontLoader();
-loader.load('js/gentilis_bold.typeface.json', function (font) {
+// var loader = new THREE.FontLoader();
 
-	var title = new THREE.TextGeometry('hello', {
-		font: font,
-		size: 5, 
-		curveSegments: 5,
-		bevelThickness: 5,
-		bevelSize: 5,
-		bevelEnabled: true,
-	})
+// font = loader.parse(font)
 
-	var title_material = new THREE.MeshPhongMaterial({
-		color: 0xffffff, 
-		flatShading: true
-	})
+// // loader.load('https://github.com/mrdoob/three.js/blob/master/examples/fonts/gentilis_bold.typeface.json', function (font) {
 
-	var title_mesh = new THREE.Mesh(title, title_material)
-	objects.add(title_mesh)
+// 	var title = new THREE.TextGeometry('hello', {
+// 		font: font,
+// 		size: .001, 
+// 		curveSegments: 5,
+// 		bevelThickness: 5,
+// 		bevelSize: 5,
+// 		bevelEnabled: true,
+// 	})
 
-})
+// 	var title_material = new THREE.MeshBasicMaterial({
+// 		color: 0xffffff, 
+// 	})
+
+// 	var title_mesh = new THREE.Mesh(title, title_material)
+// 	objects.add(title_mesh)
+
+// })
 
 
 
