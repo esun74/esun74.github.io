@@ -1,6 +1,3 @@
-import {BufferGeometryUtils} from './js/three.js-master/examples/jsm/utils/BufferGeometryUtils.js';
-
-
 // Performance Statistics
 //--------------------------------------------------
 var stats = new Stats()
@@ -109,7 +106,7 @@ for (var i = 0; i < 10; i++) {
 	geometries.push(geometry)
 }
 
-var merged_geometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false)
+// var merged_geometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false)
 
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(10, 0.1, 10), material)
