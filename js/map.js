@@ -19,15 +19,17 @@ window.addEventListener('resize', onWindowResize, false)
 // Setting the Scene
 //--------------------------------------------------
 var scene = new THREE.Scene()
-scene.background = new THREE.Color(0xcccccc)
+scene.background = new THREE.Color(0xCCCCCC)
 // scene.background = new THREE.Color(0x222222)
+// scene.fog = new THREE.Fog(0xCCCCCC, 5, 15);
 //--------------------------------------------------
 
 
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.z = 10
+camera.position.x = -10
+camera.rotation.y = -Math.PI / 2
 //--------------------------------------------------
 
 // Mouse Position
@@ -74,7 +76,7 @@ scene.add(objects)
 
 
 var material = new THREE.MeshLambertMaterial({
-		color: 0xcccccc,
+		color: 0xFFFFFF,
 		// roughness: 0.5,
 		// metalness: 0.75,
 		// side: THREE.DoubleSide
@@ -88,48 +90,128 @@ var material = new THREE.MeshLambertMaterial({
 // objects.add(polygon)
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(Math.random() * 0.5 + 0.2, Math.random() + 1.0, Math.random() * 0.5 + 0.2), material)
-polygon.position.set(1, -2.5, 0)
+polygon.position.set(0, -2.5, 0)
 polygon.castShadow = true
 polygon.receiveShadow = true
 objects.add(polygon)
 
-var geometries = []
-var location_reference = new THREE.Object3D();
-location_reference.position.z = -2.5
-objects.add(location_reference)
 
-for (var i = 0; i < 10; i++) {
-	var geometry = new THREE.BoxBufferGeometry(Math.random() * 0.5 + 0.2, Math.random() + 1.0, Math.random() * 0.5 + 0.2)
+var count = 3
+var geometries = new THREE.BufferGeometry()
+var geo_positions = new Float32Array(count * 162)
+
+for (var i = 0; i < count; i++) {
+	var x = (i * 2.5) - 2.5
+	var y = -3.0
+	var z = 2.5
+	var radius = Math.random() * 0.15 + 0.25
+	var height = Math.random() + 1.0
+
+	for (var side = 0; side < 6; side++) {
+		var angle_1 = Math.PI * (side + 0) / 3
+		var angle_2 = Math.PI * (side + 1) / 3
+
+		geo_positions[(162 * i) + (27 * side) + 0] = x + (radius * Math.cos(angle_1))
+		geo_positions[(162 * i) + (27 * side) + 1] = y + height
+		geo_positions[(162 * i) + (27 * side) + 2] = z + (radius * Math.sin(angle_1))
+
+		geo_positions[(162 * i) + (27 * side) + 3] = x + (radius * Math.cos(angle_2))
+		geo_positions[(162 * i) + (27 * side) + 4] = y + height
+		geo_positions[(162 * i) + (27 * side) + 5] = z + (radius * Math.sin(angle_2))
+
+		geo_positions[(162 * i) + (27 * side) + 6] = x + (radius * Math.cos(angle_2))
+		geo_positions[(162 * i) + (27 * side) + 7] = y
+		geo_positions[(162 * i) + (27 * side) + 8] = z + (radius * Math.sin(angle_2))
 
 
+		geo_positions[(162 * i) + (27 * side) + 9] = x + (radius * Math.cos(angle_1))
+		geo_positions[(162 * i) + (27 * side) + 10] = y + height
+		geo_positions[(162 * i) + (27 * side) + 11] = z + (radius * Math.sin(angle_1))
 
-	geometries.push(geometry)
+		geo_positions[(162 * i) + (27 * side) + 12] = x + (radius * Math.cos(angle_2))
+		geo_positions[(162 * i) + (27 * side) + 13] = y
+		geo_positions[(162 * i) + (27 * side) + 14] = z + (radius * Math.sin(angle_2))
+
+		geo_positions[(162 * i) + (27 * side) + 15] = x + (radius * Math.cos(angle_1))
+		geo_positions[(162 * i) + (27 * side) + 16] = y
+		geo_positions[(162 * i) + (27 * side) + 17] = z + (radius * Math.sin(angle_1))
+
+
+		geo_positions[(162 * i) + (27 * side) + 18] = x + (radius * Math.cos(angle_1))
+		geo_positions[(162 * i) + (27 * side) + 19] = y + height
+		geo_positions[(162 * i) + (27 * side) + 20] = z + (radius * Math.sin(angle_1))
+
+		geo_positions[(162 * i) + (27 * side) + 21] = x
+		geo_positions[(162 * i) + (27 * side) + 22] = y + height
+		geo_positions[(162 * i) + (27 * side) + 23] = z
+
+		geo_positions[(162 * i) + (27 * side) + 24] = x + (radius * Math.cos(angle_2))
+		geo_positions[(162 * i) + (27 * side) + 25] = y + height
+		geo_positions[(162 * i) + (27 * side) + 26] = z + (radius * Math.sin(angle_2))
+
+
+	}
 }
+geometries.addAttribute('position', new THREE.BufferAttribute(geo_positions, 3))
+geometries.computeVertexNormals()
 
-// var merged_geometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false)
+var hexagons = new THREE.Mesh(geometries, material)
+hexagons.castShadow = true
+hexagons.receiveShadow = true
+
+objects.add(hexagons)
+
+
+
+import {Sky} from './Sky.js'
+import {OrbitControls} from './OrbitControls.js'
+
+
+var controls = new OrbitControls(camera, renderer.domElement);
+// controls.addEventListener('change', renderer.render(scene, camera));
+//controls.maxPolarAngle = Math.PI / 2;
+// controls.enableZoom = false;
+// controls.enablePan = false;
+
+
+var sky = new Sky();
+sky.scale.setScalar( 450000 );
+objects.add(sky);
+
+
+var inclination = 1.0
+var azimuth = 0.15
+var sun_distance = 400000;
+
+sky.material.uniforms["turbidity"].value = 10;
+sky.material.uniforms["rayleigh"].value = 2;
+sky.material.uniforms["mieCoefficient"].value = 0.005;
+sky.material.uniforms["mieDirectionalG"].value = 0.8;
+sky.material.uniforms["luminance"].value = 1;
+
+
 
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(10, 0.1, 10), material)
-polygon.position.set(1, -3.05, 0)
-polygon.castShadow = true
+polygon.position.set(1, -3.0, 0)
 polygon.receiveShadow = true
 objects.add(polygon)
 
 
-var directional_light = new THREE.DirectionalLight(0xFFFFAA, 1, 100)
-directional_light.position.set(10, 10, 10)
+var directional_light = new THREE.DirectionalLight(0xFFFFFF, 0.75)
+directional_light.position.set(5, 5, 5)
 directional_light.castShadow = true
+directional_light.shadow.camera.near = sun_distance
+directional_light.shadow.camera.far = sun_distance + 1000
 objects.add(directional_light)
 
-var ambient_light = new THREE.AmbientLight(0xAAAAFF, 0.75)
+// var polygon = new THREE.Mesh(
+// 	new THREE.SphereBufferGeometry(0.5, 16, 12), 
+// 	new THREE.MeshBasicMaterial({color: 0xFFFFFF}));
+// directional_light.add(polygon)
 
 
-var polygon = new THREE.Mesh(
-	new THREE.SphereBufferGeometry(0.5, 16, 12), 
-	new THREE.MeshBasicMaterial({color: 0xFFFFFF,}));
-directional_light.add(polygon)
-
-
+var ambient_light = new THREE.AmbientLight(0xFFFFFF, 0.00)
 objects.add(ambient_light)
 
 
@@ -142,8 +224,20 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
+	inclination += 0.0001
+	var theta = -Math.PI * ((inclination))// + (performance.now() / 2000)) % 1.0);
+	var phi = 2 * Math.PI * azimuth;
 
-	objects.rotation.y += 0.002
+	directional_light.position.x = sun_distance * Math.cos(phi);
+	directional_light.position.y = sun_distance * Math.sin(phi) * Math.sin(theta);
+	directional_light.position.z = sun_distance * Math.sin(phi) * Math.cos(theta);
+	directional_light.castShadow = true
+
+	directional_light.intensity = Math.min(directional_light.position.y / 100000, 0.75)
+	ambient_light.intensity = directional_light.intensity / 3
+
+	sky.material.uniforms["sunPosition"].value.copy(directional_light.position)
+
 
 
 	renderer.render(scene, camera)
