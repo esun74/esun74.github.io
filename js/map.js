@@ -82,20 +82,31 @@ var material = new THREE.MeshLambertMaterial({
 		// side: THREE.DoubleSide
 })
 
-// var polygon = new THREE.Mesh(new THREE.RingBufferGeometry(-0.01, 10, 32), material)
-// polygon.position.set(0, -3, 0)
-// polygon.rotateX(Math.PI * -0.5)
-// polygon.castShadow = true
-// polygon.receiveShadow = true
-// objects.add(polygon)
 
+
+// Platform
+//--------------------------------------------------
+var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(10, 0.1, 10), material)
+polygon.position.set(1, -3.0, 0)
+polygon.receiveShadow = true
+objects.add(polygon)
+//--------------------------------------------------
+
+
+
+// Center Box
+//--------------------------------------------------
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(Math.random() * 0.5 + 0.2, Math.random() + 1.0, Math.random() * 0.5 + 0.2), material)
 polygon.position.set(0, -2.5, 0)
 polygon.castShadow = true
 polygon.receiveShadow = true
 objects.add(polygon)
+//--------------------------------------------------
 
 
+
+// Hexagons
+//--------------------------------------------------
 var count = 3
 var geometries = new THREE.BufferGeometry()
 var geo_positions = new Float32Array(count * 162)
@@ -160,26 +171,27 @@ hexagons.castShadow = true
 hexagons.receiveShadow = true
 
 objects.add(hexagons)
+//--------------------------------------------------
 
 
 
-import {Sky} from './Sky.js'
+// Orbit Controls
+//--------------------------------------------------
 import {OrbitControls} from './OrbitControls.js'
+var controls = new OrbitControls(camera, renderer.domElement)
+controls.maxPolarAngle = Math.PI / 2
+//--------------------------------------------------
 
 
-var controls = new OrbitControls(camera, renderer.domElement);
-// controls.addEventListener('change', renderer.render(scene, camera));
-//controls.maxPolarAngle = Math.PI / 2;
-// controls.enableZoom = false;
-// controls.enablePan = false;
 
+// Sky Shader
+//--------------------------------------------------
+import {Sky} from './Sky.js'
+var sky = new Sky()
+sky.scale.setScalar(450000)
+objects.add(sky)
 
-var sky = new Sky();
-sky.scale.setScalar( 450000 );
-objects.add(sky);
-
-
-var inclination = 1.0
+var inclination = 1.1
 var azimuth = 0.15
 var sun_distance = 400000;
 
@@ -188,32 +200,38 @@ sky.material.uniforms["rayleigh"].value = 2;
 sky.material.uniforms["mieCoefficient"].value = 0.005;
 sky.material.uniforms["mieDirectionalG"].value = 0.8;
 sky.material.uniforms["luminance"].value = 1;
+//--------------------------------------------------
 
 
 
-
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(10, 0.1, 10), material)
-polygon.position.set(1, -3.0, 0)
-polygon.receiveShadow = true
-objects.add(polygon)
-
-
+// Lights
+//--------------------------------------------------
 var directional_light = new THREE.DirectionalLight(0xFFFFFF, 0.75)
 directional_light.position.set(5, 5, 5)
 directional_light.castShadow = true
-directional_light.shadow.camera.near = sun_distance
+directional_light.shadow.camera.near = sun_distance - 1000
 directional_light.shadow.camera.far = sun_distance + 1000
 objects.add(directional_light)
 
-// var polygon = new THREE.Mesh(
-// 	new THREE.SphereBufferGeometry(0.5, 16, 12), 
-// 	new THREE.MeshBasicMaterial({color: 0xFFFFFF}));
-// directional_light.add(polygon)
-
-
 var ambient_light = new THREE.AmbientLight(0xFFFFFF, 0.00)
 objects.add(ambient_light)
+//--------------------------------------------------
 
+
+
+// Set Sun Position
+//--------------------------------------------------
+var theta = -Math.PI * ((inclination))
+var phi = 2 * Math.PI * azimuth;
+
+directional_light.position.x = sun_distance * Math.cos(phi);
+directional_light.position.y = sun_distance * Math.sin(phi) * Math.sin(theta);
+directional_light.position.z = sun_distance * Math.sin(phi) * Math.cos(theta);
+
+directional_light.intensity = Math.min(directional_light.position.y / 100000, 1.0)
+ambient_light.intensity = directional_light.intensity / 3
+sky.material.uniforms["sunPosition"].value.copy(directional_light.position)
+//--------------------------------------------------
 
 
 
@@ -223,20 +241,6 @@ var animate = function () {
 	stats.begin()
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
-
-	inclination += 0.0001
-	var theta = -Math.PI * ((inclination))// + (performance.now() / 2000)) % 1.0);
-	var phi = 2 * Math.PI * azimuth;
-
-	directional_light.position.x = sun_distance * Math.cos(phi);
-	directional_light.position.y = sun_distance * Math.sin(phi) * Math.sin(theta);
-	directional_light.position.z = sun_distance * Math.sin(phi) * Math.cos(theta);
-	directional_light.castShadow = true
-
-	directional_light.intensity = Math.min(directional_light.position.y / 100000, 0.75)
-	ambient_light.intensity = directional_light.intensity / 3
-
-	sky.material.uniforms["sunPosition"].value.copy(directional_light.position)
 
 
 
