@@ -28,8 +28,8 @@ scene.background = new THREE.Color(0xCCCCCC)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.x = -10
-camera.rotation.y = -Math.PI / 2
+camera.position.x = 10
+camera.rotation.y = Math.PI / 2
 //--------------------------------------------------
 
 // Mouse Position
@@ -52,6 +52,7 @@ renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.shadowMapCullFace = THREE.CullFaceBack
 document.body.appendChild(renderer.domElement)
 //--------------------------------------------------
 
@@ -75,24 +76,75 @@ scene.add(objects)
 //--------------------------------------------------
 
 
-var material = new THREE.MeshLambertMaterial({
-		color: 0xFFFFFF,
-		// roughness: 0.5,
-		// metalness: 0.75,
-		// side: THREE.DoubleSide
-})
-
 
 
 // Platform
 //--------------------------------------------------
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(10, 0.1, 10), material)
-polygon.position.set(1, -3.0, 0)
+var concrete_material = new THREE.MeshLambertMaterial({
+		color: 0xBBBBBB,
+})
+var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 25, 25), concrete_material)
+polygon.position.set(-0.50, 0, 0)
+polygon.receiveShadow = true
+objects.add(polygon)
+//--------------------------------------------------
+
+// Outline
+//--------------------------------------------------
+var ring_material = new THREE.MeshLambertMaterial({
+		color: 0xF0E68C,
+})
+
+var ring_geometry = new THREE.Geometry()
+for (var i = 0; i < 8; i++) {
+	ring_geometry.merge(new THREE.RingGeometry(4.5, 5.0, 8, 1, (Math.PI / 4) * i, (Math.PI / 4) - 0.05))
+}
+
+
+var polygon = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(ring_geometry), ring_material)
+polygon.position.set(-0.2, 0, 0)
+polygon.rotation.set(0, Math.PI / 2, 0)
+polygon.receiveShadow = true
+objects.add(polygon)
+//--------------------------------------------------
+
+// Loop
+//--------------------------------------------------
+var loop_material = new THREE.MeshLambertMaterial({
+		color: 0x6D6D6D,
+})
+var loop_geometry = new THREE.Geometry()
+loop_geometry.merge(new THREE.TorusGeometry(3.0, 0.015, 6, 64, Math.PI * 1.95))
+loop_geometry.rotateZ(Math.PI / 2 + 0.06)
+
+var pole_locations = [0, 1/6, 2.5/6, 3.5/6, 5/6, 6/6, 7/6, 8.5/6, 9.5/6, 11/6]
+
+for (var i = 0; i < pole_locations.length; i++) {
+	var pole_geometry = new THREE.CylinderGeometry(0.02, 0.02, 1.0, 6, 1, true)
+	pole_geometry.translate(3, -0.5, -0.075)
+	pole_geometry.rotateX(Math.PI / 2)
+	pole_geometry.merge(new THREE.TorusGeometry(3.0, 0.035, 6, 16, Math.PI / 64))
+
+	pole_geometry.rotateZ(Math.PI * pole_locations[i] - 0.05)
+	loop_geometry.merge(pole_geometry)
+}
+
+
+
+var polygon = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(loop_geometry), loop_material)
+polygon.position.set(0, 0, 0)
+polygon.rotation.set(0, Math.PI / 2, 0)
+polygon.castShadow = true
 polygon.receiveShadow = true
 objects.add(polygon)
 //--------------------------------------------------
 
 
+
+
+var material = new THREE.MeshLambertMaterial({
+		color: 0xCCCCCC,
+})
 
 // Center Box
 //--------------------------------------------------
@@ -159,8 +211,6 @@ for (var i = 0; i < count; i++) {
 		geo_positions[(162 * i) + (27 * side) + 24] = x + (radius * Math.cos(angle_2))
 		geo_positions[(162 * i) + (27 * side) + 25] = y + height
 		geo_positions[(162 * i) + (27 * side) + 26] = z + (radius * Math.sin(angle_2))
-
-
 	}
 }
 geometries.addAttribute('position', new THREE.BufferAttribute(geo_positions, 3))
@@ -192,7 +242,7 @@ sky.scale.setScalar(450000)
 objects.add(sky)
 
 var inclination = 1.1
-var azimuth = 0.15
+var azimuth = 0.15	
 var sun_distance = 400000;
 
 sky.material.uniforms["turbidity"].value = 10;
@@ -207,10 +257,13 @@ sky.material.uniforms["luminance"].value = 1;
 // Lights
 //--------------------------------------------------
 var directional_light = new THREE.DirectionalLight(0xFFFFFF, 0.75)
-directional_light.position.set(5, 5, 5)
 directional_light.castShadow = true
-directional_light.shadow.camera.near = sun_distance - 1000
-directional_light.shadow.camera.far = sun_distance + 1000
+directional_light.shadow.mapSize.width = 2048
+directional_light.shadow.mapSize.height = 2048
+directional_light.shadow.camera.near = sun_distance - 100
+directional_light.shadow.camera.far = sun_distance + 100
+directional_light.shadow.bias = - 0.00001;
+
 objects.add(directional_light)
 
 var ambient_light = new THREE.AmbientLight(0xFFFFFF, 0.00)
