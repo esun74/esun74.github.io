@@ -52,7 +52,6 @@ renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
-renderer.shadowMapCullFace = THREE.CullFaceBack
 document.body.appendChild(renderer.domElement)
 //--------------------------------------------------
 
@@ -102,7 +101,7 @@ for (var i = 0; i < 8; i++) {
 
 
 var polygon = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(ring_geometry), ring_material)
-polygon.position.set(-0.2, 0, 0)
+polygon.position.set(-0.425, 0, 0)
 polygon.rotation.set(0, Math.PI / 2, 0)
 polygon.receiveShadow = true
 objects.add(polygon)
@@ -147,7 +146,7 @@ var marker_material = new THREE.MeshLambertMaterial({
 var marker_geometry = new THREE.Geometry()
 
 var pole_geometry = new THREE.CylinderGeometry(0.05, 0.05, 1.0, 6, 1, false)
-pole_geometry.translate(0, 0.25, 0)
+pole_geometry.translate(0, 0.29, 0)
 pole_geometry.rotateZ(Math.PI / 2)
 marker_geometry.merge(pole_geometry)
 
@@ -155,7 +154,7 @@ marker_geometry.merge(pole_geometry)
 var mark_locations = [1/6, 2/6, 4/6, 5/6, 7/6, 8/6, 10/6, 11/6]
 for (var i = 0; i < mark_locations.length; i++) {
 	var mark_geometry = new THREE.BoxGeometry(0.025, 0.4, 0.12)
-	mark_geometry.translate(0.075, 3.125, 0)
+	mark_geometry.translate(0.025, 3.125, 0)
 	mark_geometry.rotateX(Math.PI * mark_locations[i])
 	marker_geometry.merge(mark_geometry)
 
@@ -169,7 +168,7 @@ for (var i = 0; i < mark_locations.length; i++) {
 var mark_locations = [3/6, 6/6, 9/6]
 for (var i = 0; i < mark_locations.length; i++) {
 	var mark_geometry = new THREE.BoxGeometry(0.025, 0.6, 0.15)
-	mark_geometry.translate(0.075, 3.2, 0)
+	mark_geometry.translate(0.025, 3.2, 0)
 	mark_geometry.rotateX(Math.PI * mark_locations[i])
 	marker_geometry.merge(mark_geometry)
 
@@ -215,16 +214,15 @@ objects.add(polygon)
 
 
 
-// Hand
+// Center
 //--------------------------------------------------
-
 var marker_material = new THREE.MeshLambertMaterial({
 		color: 0xCCCCCC,
 })
 
 var marker_geometry = new THREE.Geometry()
 
-var pole_geometry = new THREE.CylinderGeometry(0.125, 0.125, 0.01, 6, 1, false)
+var pole_geometry = new THREE.CylinderGeometry(0.125, 0.125, 0.01, 8, 1, false)
 pole_geometry.translate(0, -0.195, 0)
 pole_geometry.rotateZ(Math.PI / 2)
 pole_geometry.rotateX(Math.PI / 2)
@@ -232,6 +230,176 @@ marker_geometry.merge(pole_geometry)
 
 var polygon = new THREE.Mesh(marker_geometry, marker_material)
 objects.add(polygon)
+
+
+//--------------------------------------------------
+
+
+
+// Hands
+//--------------------------------------------------
+
+var hand_primary_material = new THREE.MeshLambertMaterial({
+		color: 0xFFFFFF,
+})
+
+var hand_secondary_material = new THREE.MeshLambertMaterial({
+		color: 0xF0E68C,
+})
+
+
+var hand_geometry = new THREE.BufferGeometry()
+hand_geometry.addAttribute('position', new THREE.BufferAttribute(Float32Array.from([
+
+	+0.18, -0.75, +0.16,
+	+0.18, +3.50, -0.10,
+	+0.18, +3.50, +0.10,
+
+	+0.18, +3.50, -0.10,
+	+0.18, -0.75, +0.16,
+	+0.18, -0.75, -0.16,
+
+
+	+0.14, +3.50, +0.10,
+	+0.14, +3.50, -0.10,
+	+0.14, -0.75, +0.16,
+
+	+0.14, -0.75, -0.16,
+	+0.14, -0.75, +0.16,
+	+0.14, +3.50, -0.10,
+
+
+	+0.14, +3.50, -0.10,
+	+0.18, +3.50, -0.10,
+	+0.18, -0.75, -0.16,
+
+	+0.14, +3.50, -0.10,
+	+0.18, -0.75, -0.16,
+	+0.14, -0.75, -0.16,
+
+
+	+0.18, -0.75, +0.16,
+	+0.18, +3.50, +0.10,
+	+0.14, +3.50, +0.10,
+
+	+0.14, -0.75, +0.16,
+	+0.18, -0.75, +0.16,
+	+0.14, +3.50, +0.10,
+
+
+	+0.14, -0.75, -0.16,
+	+0.18, -0.75, +0.16,
+	+0.14, -0.75, +0.16,
+
+	+0.18, -0.75, +0.16,
+	+0.14, -0.75, -0.16,
+	+0.18, -0.75, -0.16,
+
+
+	+0.14, +3.50, +0.10,
+	+0.18, +3.50, +0.10,
+	+0.14, +3.50, -0.10,
+
+	+0.18, +3.50, -0.10,
+	+0.14, +3.50, -0.10,
+	+0.18, +3.50, +0.10,
+
+]), 3))
+hand_geometry.computeVertexNormals()
+
+var hour_pointer = new THREE.Mesh(hand_geometry, hand_primary_material)
+hour_pointer.castShadow = true
+hour_pointer.receiveShadow = true
+
+var hand_detail_geometry = new THREE.BufferGeometry()
+hand_detail_geometry.addAttribute('position', new THREE.BufferAttribute(Float32Array.from([
+
+	+0.20, +2.45, +0.06,
+	+0.20, +3.40, -0.04,
+	+0.20, +3.40, +0.04,
+
+	+0.20, +3.40, -0.04,
+	+0.20, +2.45, +0.06,
+	+0.20, +2.45, -0.06,
+
+]), 3))
+hand_detail_geometry.computeVertexNormals()
+
+var hour_detail = new THREE.Mesh(hand_detail_geometry, hand_secondary_material)
+
+
+
+var hour_hand = new THREE.Group()
+hour_hand.add(hour_pointer)
+hour_hand.add(hour_detail)
+objects.add(hour_hand)
+
+
+
+var hand_geometry = new THREE.BufferGeometry()
+hand_geometry.addAttribute('position', new THREE.BufferAttribute(Float32Array.from([
+
+	+0.12, -0.65, +0.16,
+	+0.12, +2.40, -0.14,
+	+0.12, +2.40, +0.14,
+
+	+0.12, +2.40, -0.14,
+	+0.12, -0.65, +0.16,
+	+0.12, -0.65, -0.16,
+
+
+	+0.08, +2.40, +0.14,
+	+0.08, +2.40, -0.14,
+	+0.08, -0.65, +0.16,
+
+	+0.08, -0.65, -0.16,
+	+0.08, -0.65, +0.16,
+	+0.08, +2.40, -0.14,
+
+
+	+0.08, +2.40, -0.14,
+	+0.12, +2.40, -0.14,
+	+0.12, -0.65, -0.16,
+
+	+0.08, +2.40, -0.14,
+	+0.12, -0.65, -0.16,
+	+0.08, -0.65, -0.16,
+
+
+	+0.12, -0.65, +0.16,
+	+0.12, +2.40, +0.14,
+	+0.08, +2.40, +0.14,
+
+	+0.08, -0.65, +0.16,
+	+0.12, -0.65, +0.16,
+	+0.08, +2.40, +0.14,
+
+
+	+0.08, -0.65, -0.16,
+	+0.12, -0.65, +0.16,
+	+0.08, -0.65, +0.16,
+
+	+0.12, -0.65, +0.16,
+	+0.08, -0.65, -0.16,
+	+0.12, -0.65, -0.16,
+
+
+	+0.08, +2.40, +0.14,
+	+0.12, +2.40, +0.14,
+	+0.08, +2.40, -0.14,
+
+	+0.12, +2.40, -0.14,
+	+0.08, +2.40, -0.14,
+	+0.12, +2.40, +0.14,
+
+]), 3))
+hand_geometry.computeVertexNormals()
+
+var minute_hand = new THREE.Mesh(hand_geometry, hand_primary_material)
+minute_hand.castShadow = true
+minute_hand.receiveShadow = true
+
+objects.add(minute_hand)
 
 
 //--------------------------------------------------
@@ -247,27 +415,27 @@ var grid_material = new THREE.MeshLambertMaterial({
 })
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, 18, .01), grid_material)
-polygon.position.set(-0.35, 0, +5.25)
+polygon.position.set(-0.45, 0, +5.25)
 objects.add(polygon)
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, 18, .01), grid_material)
-polygon.position.set(-0.35, 0, -5.25)
+polygon.position.set(-0.45, 0, -5.25)
 objects.add(polygon)
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.35, +1.75, 0)
+polygon.position.set(-0.45, +1.75, 0)
 objects.add(polygon)
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.35, +5.25, 0)
+polygon.position.set(-0.45, +5.25, 0)
 objects.add(polygon)
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.35, -1.75, 0)
+polygon.position.set(-0.45, -1.75, 0)
 objects.add(polygon)
 
 var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.35, -5.25, 0)
+polygon.position.set(-0.45, -5.25, 0)
 objects.add(polygon)
 //--------------------------------------------------
 
@@ -277,7 +445,7 @@ objects.add(polygon)
 //--------------------------------------------------
 import {OrbitControls} from './OrbitControls.js'
 var controls = new OrbitControls(camera, renderer.domElement)
-controls.maxPolarAngle = Math.PI / 2
+// controls.maxPolarAngle = Math.PI / 2
 //--------------------------------------------------
 
 
@@ -308,8 +476,8 @@ var directional_light = new THREE.DirectionalLight(0xFFFFFF, 0.75)
 directional_light.castShadow = true
 directional_light.shadow.mapSize.width = 2048
 directional_light.shadow.mapSize.height = 2048
-directional_light.shadow.mapSize.width = 4096
-directional_light.shadow.mapSize.height = 4096
+// directional_light.shadow.mapSize.width = 4096
+// directional_light.shadow.mapSize.height = 4096
 directional_light.shadow.camera.near = sun_distance - 100
 directional_light.shadow.camera.far = sun_distance + 100
 directional_light.shadow.bias = - 0.0001;
@@ -336,9 +504,11 @@ var animate = function () {
 
 	// Set Sun Position
 	//--------------------------------------------------
-	inclination = (inclination % 1 + 1) + 0.001
+	inclination = (inclination % 1 + 1) + 0.0001
+	hour_hand.rotation.x -= Math.PI * 0.001
+	minute_hand.rotation.x -= Math.PI * 0.012
 
-	console.log(inclination)
+	// console.log(inclination)
 
 	var theta = -Math.PI * ((inclination))
 	var phi = 2 * Math.PI * azimuth;
