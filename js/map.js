@@ -19,7 +19,7 @@ window.addEventListener('resize', onWindowResize, false)
 // Setting the Scene
 //--------------------------------------------------
 var scene = new THREE.Scene()
-scene.background = new THREE.Color(0xCCCCCC)
+// scene.background = new THREE.Color(0xCCCCCC)
 // scene.background = new THREE.Color(0x222222)
 // scene.fog = new THREE.Fog(0xCCCCCC, 5, 15);
 //--------------------------------------------------
@@ -131,7 +131,7 @@ var marker_material = new THREE.MeshLambertMaterial({
 
 var marker_geometry = new THREE.Geometry()
 
-var pole_geometry = new THREE.CylinderGeometry(0.05, 0.05, 1.0, 6, 1, false)
+var pole_geometry = new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8, 1, false)
 pole_geometry.translate(0, 0.29, 0)
 pole_geometry.rotateZ(Math.PI / 2)
 marker_geometry.merge(pole_geometry)
@@ -206,7 +206,7 @@ var marker_material = new THREE.MeshLambertMaterial({
 
 var marker_geometry = new THREE.Geometry()
 
-var pole_geometry = new THREE.CylinderGeometry(0.125, 0.125, 0.01, 8, 1, false)
+var pole_geometry = new THREE.CylinderGeometry(0.125, 0.125, 0.01, 16, 1, false)
 pole_geometry.translate(0, -0.195, 0)
 pole_geometry.rotateZ(Math.PI / 2)
 pole_geometry.rotateX(Math.PI / 2)
@@ -311,10 +311,10 @@ var hour_detail = new THREE.Mesh(hand_detail_geometry, hand_secondary_material)
 
 
 
-var hour_hand = new THREE.Group()
-hour_hand.add(hour_pointer)
-hour_hand.add(hour_detail)
-objects.add(hour_hand)
+var minute_hand = new THREE.Group()
+minute_hand.add(hour_pointer)
+minute_hand.add(hour_detail)
+objects.add(minute_hand)
 
 
 
@@ -377,11 +377,11 @@ hand_geometry.addAttribute('position', new THREE.BufferAttribute(Float32Array.fr
 ]), 3))
 hand_geometry.computeVertexNormals()
 
-var minute_hand = new THREE.Mesh(hand_geometry, hand_primary_material)
-minute_hand.castShadow = true
-minute_hand.receiveShadow = true
+var hour_hand = new THREE.Mesh(hand_geometry, hand_primary_material)
+hour_hand.castShadow = true
+hour_hand.receiveShadow = true
 
-objects.add(minute_hand)
+objects.add(hour_hand)
 //--------------------------------------------------
 
 
@@ -429,7 +429,7 @@ objects.add(polygon)
 import {Sky} from './Sky.js'
 var sky = new Sky()
 sky.scale.setScalar(450000)
-objects.add(sky)
+scene.add(sky)
 
 var inclination = 1.1
 var azimuth = 0.15	
@@ -478,9 +478,16 @@ var animate = function () {
 
 	// Set Sun Position
 	//--------------------------------------------------
-	inclination = (inclination % 1 + 1) + 0.001
-	hour_hand.rotation.x -= Math.PI * 0.001
-	minute_hand.rotation.x -= Math.PI * 0.012
+	// inclination = (inclination % 1 + 1) + 0.0001
+	// hour_hand.rotation.x -= Math.PI * 0.001
+	// minute_hand.rotation.x -= Math.PI * 0.012
+
+	inclination = 1.2
+
+	var time = new Date()
+	inclination = 1 + (((time.getHours() % 12) + ((time.getMinutes() + ((time.getSeconds() + (time.getMilliseconds() / 1000)) / 60)) / 60)) / 12)
+	hour_hand.rotation.x = -Math.PI * (((time.getHours() % 12) + ((time.getMinutes() + ((time.getSeconds() + (time.getMilliseconds() / 1000)) / 60)) / 60)) / 12 * 2)
+	minute_hand.rotation.x = -Math.PI * ((time.getMinutes() + ((time.getSeconds() + (time.getMilliseconds() / 1000)) / 60)) / 60 * 2)
 
 	// console.log(inclination)
 
