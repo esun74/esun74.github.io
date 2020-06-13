@@ -28,8 +28,9 @@ scene.background = new THREE.Color(0xCCCCCC)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.x = 10
+camera.position.x = 5.0
 camera.rotation.y = Math.PI / 2
+camera.rotation.z = Math.PI / 64
 //--------------------------------------------------
 
 // Mouse Position
@@ -62,21 +63,6 @@ scene.add(objects)
 //--------------------------------------------------
 
 
-// Create center polygon
-// MeshBasicMaterial
-// MeshDepthMaterial
-// MeshDistanceMaterial
-// MeshLambertMaterial
-// MeshMatcapMaterial
-// MeshPhongMaterial
-// MeshPhysicalMaterial
-// MeshStandardMaterial
-// MeshToonMaterial
-//--------------------------------------------------
-
-
-
-
 // Platform
 //--------------------------------------------------
 var concrete_material = new THREE.MeshLambertMaterial({
@@ -91,7 +77,7 @@ objects.add(polygon)
 // Outline
 //--------------------------------------------------
 var ring_material = new THREE.MeshLambertMaterial({
-		color: 0xF0E68C,
+		color: 0xFDE76A,
 })
 
 var ring_geometry = new THREE.Geometry()
@@ -204,8 +190,6 @@ for (var i = 0; i < mark_locations.length; i++) {
 
 
 var polygon = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(marker_geometry), marker_material)
-// polygon.position.set(0, 0, 0)
-// polygon.rotation.set(0, Math.PI / 2, 0)
 polygon.castShadow = true
 polygon.receiveShadow = true
 objects.add(polygon)
@@ -230,8 +214,6 @@ marker_geometry.merge(pole_geometry)
 
 var polygon = new THREE.Mesh(marker_geometry, marker_material)
 objects.add(polygon)
-
-
 //--------------------------------------------------
 
 
@@ -244,7 +226,7 @@ var hand_primary_material = new THREE.MeshLambertMaterial({
 })
 
 var hand_secondary_material = new THREE.MeshLambertMaterial({
-		color: 0xF0E68C,
+		color: 0xFDE76A,
 })
 
 
@@ -400,42 +382,34 @@ minute_hand.castShadow = true
 minute_hand.receiveShadow = true
 
 objects.add(minute_hand)
-
-
 //--------------------------------------------------
 
 
 
 // Grid
 //--------------------------------------------------
-
-
 var grid_material = new THREE.MeshLambertMaterial({
 		color: 0x777777,
 })
 
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, 18, .01), grid_material)
-polygon.position.set(-0.45, 0, +5.25)
-objects.add(polygon)
+var grid_geometry = new THREE.Geometry()
 
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, 18, .01), grid_material)
-polygon.position.set(-0.45, 0, -5.25)
-objects.add(polygon)
+var grid_detail = [
+	[[.01, 50., .01], [-0.45, +0.00, +5.25]],
+	[[.01, 50., .01], [-0.45, +0.00, -5.25]],
+	[[.01, .01, 50.], [-0.45, +1.75, +0.00]],
+	[[.01, .01, 50.], [-0.45, +5.25, +0.00]],
+	[[.01, .01, 50.], [-0.45, -1.75, +0.00]],
+	[[.01, .01, 50.], [-0.45, -5.25, +0.00]],
+]
 
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.45, +1.75, 0)
-objects.add(polygon)
+for (var i = 0; i < grid_detail.length; i++) {
+	var line_geometry = new THREE.BoxGeometry(grid_detail[i][0][0], grid_detail[i][0][1], grid_detail[i][0][2])
+	line_geometry.translate(grid_detail[i][1][0], grid_detail[i][1][1], grid_detail[i][1][2])
+	grid_geometry.merge(line_geometry)
+}
 
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.45, +5.25, 0)
-objects.add(polygon)
-
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.45, -1.75, 0)
-objects.add(polygon)
-
-var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(.01, .01, 18), grid_material)
-polygon.position.set(-0.45, -5.25, 0)
+var polygon = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(grid_geometry), grid_material)
 objects.add(polygon)
 //--------------------------------------------------
 
@@ -443,8 +417,8 @@ objects.add(polygon)
 
 // Orbit Controls
 //--------------------------------------------------
-import {OrbitControls} from './OrbitControls.js'
-var controls = new OrbitControls(camera, renderer.domElement)
+// import {OrbitControls} from './OrbitControls.js'
+// var controls = new OrbitControls(camera, renderer.domElement)
 // controls.maxPolarAngle = Math.PI / 2
 //--------------------------------------------------
 
@@ -504,7 +478,7 @@ var animate = function () {
 
 	// Set Sun Position
 	//--------------------------------------------------
-	inclination = (inclination % 1 + 1) + 0.0001
+	inclination = (inclination % 1 + 1) + 0.001
 	hour_hand.rotation.x -= Math.PI * 0.001
 	minute_hand.rotation.x -= Math.PI * 0.012
 
