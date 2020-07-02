@@ -27,8 +27,8 @@ var scene = new THREE.Scene()
 
 // Setting the Camera
 //--------------------------------------------------
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.x = 5.0
+var camera = new THREE.PerspectiveCamera(15, window.innerWidth/window.innerHeight, 0.1, 1000)
+camera.position.x = 32.0
 camera.rotation.y = Math.PI / 2
 camera.rotation.z = Math.PI / 64
 //--------------------------------------------------
@@ -99,16 +99,16 @@ var loop_material = new THREE.MeshLambertMaterial({
 		color: 0x6D6D6D,
 })
 var loop_geometry = new THREE.Geometry()
-loop_geometry.merge(new THREE.TorusGeometry(3.0, 0.015, 6, 64, Math.PI * 1.96))
+loop_geometry.merge(new THREE.TorusGeometry(3.0, 0.015, 8, 64, Math.PI * 1.96))
 loop_geometry.rotateZ(Math.PI / 2 + 0.04)
 
 var pole_locations = [0, 1/6, 2.5/6, 3.5/6, 5/6, 6/6, 7/6, 8.5/6, 9.5/6, 11/6]
 
 for (var i = 0; i < pole_locations.length; i++) {
-	var pole_geometry = new THREE.CylinderGeometry(0.02, 0.02, 1.0, 6, 1, true)
+	var pole_geometry = new THREE.CylinderGeometry(0.02, 0.02, 1.0, 8, 1, true)
 	pole_geometry.translate(3, -0.5, -0.075)
 	pole_geometry.rotateX(Math.PI / 2)
-	pole_geometry.merge(new THREE.TorusGeometry(3.0, 0.035, 6, 16, Math.PI / 64))
+	pole_geometry.merge(new THREE.TorusGeometry(3.0, 0.035, 8, 16, Math.PI / 64))
 
 	pole_geometry.rotateZ(Math.PI * pole_locations[i] - 0.05)
 	loop_geometry.merge(pole_geometry)
@@ -131,7 +131,7 @@ var marker_material = new THREE.MeshLambertMaterial({
 
 var marker_geometry = new THREE.Geometry()
 
-var pole_geometry = new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8, 1, false)
+var pole_geometry = new THREE.CylinderGeometry(0.05, 0.05, 1.0, 16, 1, false)
 pole_geometry.translate(0, 0.29, 0)
 pole_geometry.rotateZ(Math.PI / 2)
 marker_geometry.merge(pole_geometry)
@@ -464,7 +464,11 @@ objects.add(ambient_light)
 
 
 
-
+var time = new Date()
+var minute_value = 0
+var hour_value = 0
+var theta = 0
+var phi = 0
 
 
 
@@ -482,17 +486,19 @@ var animate = function () {
 	// hour_hand.rotation.x -= Math.PI * 0.001
 	// minute_hand.rotation.x -= Math.PI * 0.012
 
-	inclination = 1.2
+	// inclination = 1.2
 
-	var time = new Date()
-	inclination = 1 + (((time.getHours() % 12) + ((time.getMinutes() + ((time.getSeconds() + (time.getMilliseconds() / 1000)) / 60)) / 60)) / 12)
-	hour_hand.rotation.x = -Math.PI * (((time.getHours() % 12) + ((time.getMinutes() + ((time.getSeconds() + (time.getMilliseconds() / 1000)) / 60)) / 60)) / 12 * 2)
-	minute_hand.rotation.x = -Math.PI * ((time.getMinutes() + ((time.getSeconds() + (time.getMilliseconds() / 1000)) / 60)) / 60 * 2)
+	time = new Date()
+	minute_value = (time.getMinutes() + ((time.getSeconds() + (time.getMilliseconds() / 1000)) / 60)) / 60
+	hour_value = ((time.getHours() % 12) + minute_value) / 12
+	inclination = 2 - hour_value
+	hour_hand.rotation.x = -Math.PI * hour_value * 2
+	minute_hand.rotation.x = -Math.PI * minute_value * 2
 
 	// console.log(inclination)
 
-	var theta = -Math.PI * ((inclination))
-	var phi = 2 * Math.PI * azimuth;
+	theta = -Math.PI * ((inclination))
+	phi = 2 * Math.PI * azimuth;
 
 	directional_light.position.x = sun_distance * Math.cos(phi);
 	directional_light.position.y = sun_distance * Math.sin(phi) * Math.sin(theta);
