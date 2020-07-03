@@ -27,7 +27,7 @@ scene.background = new THREE.Color(0x222222)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.z = 16.0
+camera.position.z = 10.0
 // camera.rotation.y = Math.PI / 2
 //--------------------------------------------------
 
@@ -73,12 +73,10 @@ objects.add(ambient_light)
 
 
 var directional_light = new THREE.DirectionalLight(0xFFFFFF, 0.75)
-directional_light.position.set(5, 5, -5)
+directional_light.position.set(10, 5, -5)
 directional_light.castShadow = true
 directional_light.shadow.mapSize.width = 2048
 directional_light.shadow.mapSize.height = 2048
-// directional_light.shadow.mapSize.width = 4096
-// directional_light.shadow.mapSize.height = 4096
 directional_light.shadow.camera.near = -100
 directional_light.shadow.camera.far = +100
 directional_light.shadow.bias = - 0.0001;
@@ -87,45 +85,9 @@ objects.add(directional_light)
 
 //--------------------------------------------------
 
-// Cube
-//--------------------------------------------------
-var concrete_material = new THREE.MeshLambertMaterial({
-		color: 0xBBBBBB,
-})
-
-
-var polygons = []
-var instances = 8
-
-for (let i = 0; i < instances; i++) {
-	for (let j = 0; j < instances; j++) {
-		for (let k = 0; k < instances; k++) {
-			polygons[((i * instances) + j) * instances + k] = new THREE.Mesh(new THREE.BoxBufferGeometry(0.5, 0.5, 0.5), new THREE.MeshLambertMaterial({color: 0xBBBBBB}))
-			polygons[((i * instances) + j) * instances + k].position.set(i - instances / 2, j - instances / 2, k - instances / 2)
-			polygons[((i * instances) + j) * instances + k].material.transparent = true
-			// polygons[(i * 32) + j].castShadow = true
-			// polygons[(i * 32) + j].receiveShadow = true
-			objects.add(polygons[((i * instances) + j) * instances + k])
-		}
-	}
-}
-
-
-
-// var polygon = new THREE.Mesh(new THREE.BoxBufferGeometry(5, 5, 5), concrete_material)
-// polygon.position.set(0, 0, 0)
-// polygon.castShadow = true
-// polygon.receiveShadow = true
-// objects.add(polygon)
-//--------------------------------------------------
-
-
-
 
 // GPU Test
 //--------------------------------------------------
-
-const API = openSimplexNoise(Date.now())
 
 const gpu = new GPU();
 
@@ -260,29 +222,62 @@ float snoise(vec4 v)
 
 }`)
 
+var instances = 8
+
 const noise4D = gpu.createKernel(function(time, instances) {
 
 	let x = this.thread.x;
 	let y = this.thread.y;
 	let z = this.thread.z;
 
-	return snoise([x / instances, y / instances, z / instances, time]);
+	return [snoise([x / instances, y / instances, z / instances, time]), snoise([x / instances, y / instances, z / instances, time + 1000]), snoise([x / instances, y / instances, z / instances, time + 2000])];
 }).setOutput([instances, instances, instances]);
-
 
 var time_started = Date.now()
 
-// console.log(Date.now() - time_started)
-// console.log(noise4D.toString(0))
-// console.log(noise4D(Date.now() - time_started))
+//--------------------------------------------------
 
-// for (let i = 0; i < 32; i++) {
-// 	for (let j = 0; j < 32; j++) {
-// 		polygons[(i * 32) + j].position.set(i - 16, API.noise3D(i / 4, j / 4, Date.now() / 500), j - 16)
-// 	}
-// }
+
+// Cube
+//--------------------------------------------------
+var material = new THREE.LineBasicMaterial({
+		color: 0xFFBF40,
+})
+
+
+var geometry = new THREE.BufferGeometry()
+var vertices = new Float32Array(instances * instances * instances * 6)
+
+
+for (let i = 0; i < instances; i++) {
+	for (let j = 0; j < instances; j++) {
+		for (let k = 0; k < instances; k++) {
+			let location = ((i * instances + j) * instances + k) * 6
+			vertices[location + 0] = i - instances / 2 + 0.5
+			vertices[location + 1] = j - instances / 2 + 0.5
+			vertices[location + 2] = k - instances / 2 + 0.5
+			vertices[location + 3] = 0
+			vertices[location + 4] = 0
+			vertices[location + 5] = 0
+
+			// polygons[((i * instances) + j) * instances + k] = new THREE.Mesh(new THREE.BoxBufferGeometry(0.5, 0.5, 0.5), new THREE.MeshLambertMaterial({color: 0xBBBBBB}))
+			// polygons[((i * instances) + j) * instances + k].position.set()
+			// polygons[((i * instances) + j) * instances + k].material.transparent = true
+			// polygons[((i * instances) + j) * instances + k].material.opacity = 0.5
+			// polygons[((i * instances) + j) * instances + k].castShadow = true
+			// polygons[((i * instances) + j) * instances + k].receiveShadow = true
+			// objects.add(polygons[((i * instances) + j) * instances + k])
+		}
+	}
+}
+
+geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3))
+
+var polygon = new THREE.LineSegments(geometry, material)
+objects.add(polygon)
 
 //--------------------------------------------------
+
 
 
 // Operations each frame
@@ -292,15 +287,21 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
-	let values = noise4D((Date.now() - time_started) / 1000, instances)
+	objects.rotation.y -= 0.005
+
+	let values = noise4D((Date.now() - time_started) / 10000, instances)
 
 	for (let i = 0; i < instances; i++) {
 		for (let j = 0; j < instances; j++) {
 			for (let k = 0; k < instances; k++) {
-				polygons[((i * instances) + j) * instances + k].material.color = new THREE.Color(values[i][j][k] / 2 + 0.5, values[i][j][k] / 2 + 0.5, values[i][j][k] / 2 + 0.5)
+				let location = ((((i * instances) + j) * instances) + k) * 6
+				vertices[location + 3] = vertices[location + 0] + values[i][j][k][0]
+				vertices[location + 4] = vertices[location + 1] + values[i][j][k][1]	
+				vertices[location + 5] = vertices[location + 2] + values[i][j][k][2]			
 			}
 		}
 	}
+	geometry.attributes.position.needsUpdate = true
 
 	// console.log(create_field(API))
 
