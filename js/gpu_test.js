@@ -27,7 +27,7 @@ scene.background = new THREE.Color(0x222222)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.z = 16.0
+camera.position.z = 8.0
 // camera.rotation.y = Math.PI / 2
 //--------------------------------------------------
 
