@@ -222,7 +222,7 @@ float snoise(vec4 v)
 
 }`)
 
-var instances = 16
+var instances = 32
 
 const noise4D = gpu.createKernel(function(time, instances, positions) {
 
@@ -318,8 +318,11 @@ var animate = function () {
 				vertices[location + 1] = vertices[location + 4]
 				vertices[location + 2] = vertices[location + 5]
 				vertices[location + 3] += values[i][j][k][0]
-				vertices[location + 4] += values[i][j][k][1]	
-				vertices[location + 5] += values[i][j][k][2]			
+				vertices[location + 4] += values[i][j][k][1]
+				vertices[location + 5] += values[i][j][k][2]
+				vertices[location + 3] *= 0.999
+				vertices[location + 4] *= 0.999
+				vertices[location + 5] *= 0.999
 			}
 		}
 	}
