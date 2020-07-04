@@ -27,7 +27,7 @@ scene.background = new THREE.Color(0x222222)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.z = 10.0
+camera.position.z = 16.0
 // camera.rotation.y = Math.PI / 2
 //--------------------------------------------------
 
@@ -222,15 +222,42 @@ float snoise(vec4 v)
 
 }`)
 
-var instances = 8
+var instances = 16
 
-const noise4D = gpu.createKernel(function(time, instances) {
+const noise4D = gpu.createKernel(function(time, instances, positions) {
 
-	let x = this.thread.x;
-	let y = this.thread.y;
-	let z = this.thread.z;
+	let offset_x = 1000
+	let offset_y = 2000
+	let offset_z = 3000
+	let finite_difference_amount = 0.1
 
-	return [snoise([x / instances, y / instances, z / instances, time]), snoise([x / instances, y / instances, z / instances, time + 1000]), snoise([x / instances, y / instances, z / instances, time + 2000])];
+
+	let d_x0_y = snoise([this.thread.x / instances - finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_y])
+	let d_x0_z = snoise([this.thread.x / instances - finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_z])
+	let d_x1_y = snoise([this.thread.x / instances + finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_y])
+	let d_x1_z = snoise([this.thread.x / instances + finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_z])
+	
+	let d_y0_x = snoise([this.thread.x / instances, this.thread.y / instances - finite_difference_amount, this.thread.z / instances, time + offset_x])
+	let d_y0_z = snoise([this.thread.x / instances, this.thread.y / instances - finite_difference_amount, this.thread.z / instances, time + offset_z])
+	let d_y1_x = snoise([this.thread.x / instances, this.thread.y / instances + finite_difference_amount, this.thread.z / instances, time + offset_x])
+	let d_y1_z = snoise([this.thread.x / instances, this.thread.y / instances + finite_difference_amount, this.thread.z / instances, time + offset_z])
+
+	let d_z0_x = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances - finite_difference_amount, time + offset_x])
+	let d_z0_y = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances - finite_difference_amount, time + offset_y])
+	let d_z1_x = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances + finite_difference_amount, time + offset_x])
+	let d_z1_y = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances + finite_difference_amount, time + offset_y])
+
+	let curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * Math.E)
+	let curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * Math.E)
+	let curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * Math.E)
+
+	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z))
+
+	curl_x /= curl_magnitude
+	curl_y /= curl_magnitude
+	curl_z /= curl_magnitude
+
+	return [curl_x / 100, curl_y / 100, curl_z / 100];
 }).setOutput([instances, instances, instances]);
 
 var time_started = Date.now()
@@ -259,14 +286,6 @@ for (let i = 0; i < instances; i++) {
 			vertices[location + 3] = 0
 			vertices[location + 4] = 0
 			vertices[location + 5] = 0
-
-			// polygons[((i * instances) + j) * instances + k] = new THREE.Mesh(new THREE.BoxBufferGeometry(0.5, 0.5, 0.5), new THREE.MeshLambertMaterial({color: 0xBBBBBB}))
-			// polygons[((i * instances) + j) * instances + k].position.set()
-			// polygons[((i * instances) + j) * instances + k].material.transparent = true
-			// polygons[((i * instances) + j) * instances + k].material.opacity = 0.5
-			// polygons[((i * instances) + j) * instances + k].castShadow = true
-			// polygons[((i * instances) + j) * instances + k].receiveShadow = true
-			// objects.add(polygons[((i * instances) + j) * instances + k])
 		}
 	}
 }
@@ -287,17 +306,20 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
-	objects.rotation.y -= 0.005
+	objects.rotation.y -= 0.002
 
-	let values = noise4D((Date.now() - time_started) / 10000, instances)
+	let values = noise4D((Date.now() - time_started) / 5000, instances, vertices)
 
 	for (let i = 0; i < instances; i++) {
 		for (let j = 0; j < instances; j++) {
 			for (let k = 0; k < instances; k++) {
 				let location = ((((i * instances) + j) * instances) + k) * 6
-				vertices[location + 3] = vertices[location + 0] + values[i][j][k][0]
-				vertices[location + 4] = vertices[location + 1] + values[i][j][k][1]	
-				vertices[location + 5] = vertices[location + 2] + values[i][j][k][2]			
+				vertices[location + 0] = vertices[location + 3]
+				vertices[location + 1] = vertices[location + 4]
+				vertices[location + 2] = vertices[location + 5]
+				vertices[location + 3] += values[i][j][k][0]
+				vertices[location + 4] += values[i][j][k][1]	
+				vertices[location + 5] += values[i][j][k][2]			
 			}
 		}
 	}
