@@ -26,9 +26,8 @@ scene.background = new THREE.Color(0x222222)
 
 // Setting the Camera
 //--------------------------------------------------
-var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.z = 8.0
-// camera.rotation.y = Math.PI / 2
+var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
+camera.position.z = 16.0
 //--------------------------------------------------
 
 // Mouse Position
@@ -49,8 +48,6 @@ window.addEventListener('mousemove', onMouseMove, false)
 var renderer = new THREE.WebGLRenderer({alpha: true, antialias: true})
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
 document.body.appendChild(renderer.domElement)
 //--------------------------------------------------
 
@@ -64,25 +61,6 @@ scene.add(objects)
 //--------------------------------------------------
 import {OrbitControls} from './OrbitControls.js'
 var controls = new OrbitControls(camera, renderer.domElement)
-//--------------------------------------------------
-
-// Lighting
-//--------------------------------------------------
-var ambient_light = new THREE.AmbientLight(0xFFFFFF, 0.25)
-objects.add(ambient_light)
-
-
-var directional_light = new THREE.DirectionalLight(0xFFFFFF, 0.75)
-directional_light.position.set(10, 5, -5)
-directional_light.castShadow = true
-directional_light.shadow.mapSize.width = 2048
-directional_light.shadow.mapSize.height = 2048
-directional_light.shadow.camera.near = -100
-directional_light.shadow.camera.far = +100
-directional_light.shadow.bias = - 0.0001;
-
-objects.add(directional_light)
-
 //--------------------------------------------------
 
 
@@ -253,13 +231,14 @@ const noise4D = gpu.createKernel(function(time, instances, positions) {
 
 	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z))
 
-	curl_x /= curl_magnitude
-	curl_y /= curl_magnitude
-	curl_z /= curl_magnitude
+	curl_x /= curl_magnitude * 100
+	curl_y /= curl_magnitude * 100
+	curl_z /= curl_magnitude * 100
 
-	return [curl_x / 100, curl_y / 100, curl_z / 100];
+	return [curl_x, curl_y, curl_z];
 }).setOutput([instances, instances, instances]);
 
+// var time_started = Date.now() + 10500
 var time_started = Date.now()
 
 //--------------------------------------------------
@@ -267,36 +246,33 @@ var time_started = Date.now()
 
 // Cube
 //--------------------------------------------------
-var material = new THREE.LineBasicMaterial({
+var material = new THREE.PointsMaterial({
 		color: 0xFFBF40,
+		size: .01,
+		sizeAttenuation: true,
 })
 
-
 var geometry = new THREE.BufferGeometry()
-var vertices = new Float32Array(instances * instances * instances * 6)
+var vertices = new Float32Array(instances * instances * instances * 3)
 
 
 for (let i = 0; i < instances; i++) {
 	for (let j = 0; j < instances; j++) {
 		for (let k = 0; k < instances; k++) {
-			let location = ((i * instances + j) * instances + k) * 6
-			vertices[location + 0] = i - instances / 2 + 0.5
-			vertices[location + 1] = j - instances / 2 + 0.5
-			vertices[location + 2] = k - instances / 2 + 0.5
-			vertices[location + 3] = 0
-			vertices[location + 4] = 0
-			vertices[location + 5] = 0
+			let location = ((i * instances + j) * instances + k) * 3
+			vertices[location + 0] = +0.0
+			vertices[location + 1] = -8.0
+			vertices[location + 2] = +0.0
 		}
 	}
 }
 
 geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3))
 
-var polygon = new THREE.LineSegments(geometry, material)
+var polygon = new THREE.Points(geometry, material)
 objects.add(polygon)
 
 //--------------------------------------------------
-
 
 
 // Operations each frame
@@ -306,29 +282,29 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
-	objects.rotation.y -= 0.002
-
-	let values = noise4D((Date.now() - time_started) / 5000, instances, vertices)
+	let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
+	// let values = noise4D(25, instances, vertices)
 
 	for (let i = 0; i < instances; i++) {
 		for (let j = 0; j < instances; j++) {
 			for (let k = 0; k < instances; k++) {
-				let location = ((((i * instances) + j) * instances) + k) * 6
-				vertices[location + 0] = vertices[location + 3]
-				vertices[location + 1] = vertices[location + 4]
-				vertices[location + 2] = vertices[location + 5]
-				vertices[location + 3] += values[i][j][k][0]
-				vertices[location + 4] += values[i][j][k][1]
-				vertices[location + 5] += values[i][j][k][2]
-				vertices[location + 3] *= 0.999
-				vertices[location + 4] *= 0.999
-				vertices[location + 5] *= 0.999
+				let location = ((((i * instances) + j) * instances) + k) * 3
+
+				vertices[location + 0] += values[i][j][k][0]
+				vertices[location + 1] += values[i][j][k][1]
+				vertices[location + 2] += values[i][j][k][2]
+
+				if (vertices[location + 1] > 8) {
+					vertices[location + 0] = +0.0
+					vertices[location + 1] = -8.0
+					vertices[location + 2] = +0.0
+				} else {
+					vertices[location + 1] += 0.025
+				}
 			}
 		}
 	}
 	geometry.attributes.position.needsUpdate = true
-
-	// console.log(create_field(API))
 
 	renderer.render(scene, camera)
 	stats.end()
