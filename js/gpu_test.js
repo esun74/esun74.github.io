@@ -261,7 +261,7 @@ for (let i = 0; i < instances; i++) {
 		for (let k = 0; k < instances; k++) {
 			let location = ((i * instances + j) * instances + k) * 3
 			vertices[location + 0] = +0.0
-			vertices[location + 1] = -8.0
+			vertices[location + 1] = +0.0
 			vertices[location + 2] = +0.0
 		}
 	}
