@@ -27,7 +27,7 @@ scene.background = new THREE.Color(0x222222)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
-camera.position.z = 16.0
+camera.position.z = 8.0
 //--------------------------------------------------
 
 // Mouse Position
@@ -200,7 +200,7 @@ float snoise(vec4 v)
 
 }`)
 
-var instances = 32
+var instances = 24
 
 const noise4D = gpu.createKernel(function(time, instances, positions) {
 
@@ -229,17 +229,16 @@ const noise4D = gpu.createKernel(function(time, instances, positions) {
 	let curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * Math.E)
 	let curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * Math.E)
 
-	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z))
+	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z)) * 100 
 
-	curl_x /= curl_magnitude * 100
-	curl_y /= curl_magnitude * 100
-	curl_z /= curl_magnitude * 100
+	curl_x /= curl_magnitude
+	curl_y /= curl_magnitude
+	curl_z /= curl_magnitude
 
 	return [curl_x, curl_y, curl_z];
 }).setOutput([instances, instances, instances]);
 
-// var time_started = Date.now() + 10500
-var time_started = Date.now()
+var time_started = Date.now() - (Math.random() * 50000)
 
 //--------------------------------------------------
 
@@ -283,7 +282,8 @@ var animate = function () {
 	raycaster.setFromCamera(mouse, camera)
 
 	let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
-	// let values = noise4D(25, instances, vertices)
+
+	objects.rotation.y -= 0.002
 
 	for (let i = 0; i < instances; i++) {
 		for (let j = 0; j < instances; j++) {
@@ -293,14 +293,19 @@ var animate = function () {
 				vertices[location + 0] += values[i][j][k][0]
 				vertices[location + 1] += values[i][j][k][1]
 				vertices[location + 2] += values[i][j][k][2]
+				vertices[location + 0] *= 0.999
+				vertices[location + 1] *= 0.999
+				vertices[location + 2] *= 0.999
 
-				if (vertices[location + 1] > 8) {
-					vertices[location + 0] = +0.0
-					vertices[location + 1] = -8.0
-					vertices[location + 2] = +0.0
-				} else {
-					vertices[location + 1] += 0.025
-				}
+				// if (vertices[location + 1] > 8) {
+				// 	vertices[location + 0] = +0.0
+				// 	vertices[location + 1] = -8.0
+				// 	vertices[location + 2] = +0.0
+				// } else {
+				// 	vertices[location + 0] *= 0.999
+				// 	vertices[location + 1] += 0.025
+				// 	vertices[location + 2] *= 0.999
+				// }
 			}
 		}
 	}
