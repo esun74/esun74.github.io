@@ -197,46 +197,52 @@ float snoise(vec4 v)
   m1 = m1 * m1;
   return 49.0 * ( dot(m0*m0, vec3( dot( p0, x0 ), dot( p1, x1 ), dot( p2, x2 )))
                + dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;
+}
 
-}`)
 
-var instances = 24
+`)
+
+var instances = 8
 
 const noise4D = gpu.createKernel(function(time, instances, positions) {
 
-	let offset_x = 1000
-	let offset_y = 2000
-	let offset_z = 3000
+	let offset_x = 100
+	let offset_y = 200
+	let offset_z = 300
 	let finite_difference_amount = 0.1
 
+	let x_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 0] / 10
+	let y_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 1] / 10
+	let z_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 2] / 10
 
-	let d_x0_y = snoise([this.thread.x / instances - finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_y])
-	let d_x0_z = snoise([this.thread.x / instances - finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_z])
-	let d_x1_y = snoise([this.thread.x / instances + finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_y])
-	let d_x1_z = snoise([this.thread.x / instances + finite_difference_amount, this.thread.y / instances, this.thread.z / instances, time + offset_z])
+	let d_x0_y = snoise([x_position - finite_difference_amount, y_position, z_position, time + offset_y])
+	let d_x0_z = snoise([x_position - finite_difference_amount, y_position, z_position, time + offset_z])
+	let d_x1_y = snoise([x_position + finite_difference_amount, y_position, z_position, time + offset_y])
+	let d_x1_z = snoise([x_position + finite_difference_amount, y_position, z_position, time + offset_z])
 	
-	let d_y0_x = snoise([this.thread.x / instances, this.thread.y / instances - finite_difference_amount, this.thread.z / instances, time + offset_x])
-	let d_y0_z = snoise([this.thread.x / instances, this.thread.y / instances - finite_difference_amount, this.thread.z / instances, time + offset_z])
-	let d_y1_x = snoise([this.thread.x / instances, this.thread.y / instances + finite_difference_amount, this.thread.z / instances, time + offset_x])
-	let d_y1_z = snoise([this.thread.x / instances, this.thread.y / instances + finite_difference_amount, this.thread.z / instances, time + offset_z])
+	let d_y0_x = snoise([x_position, y_position - finite_difference_amount, z_position, time + offset_x])
+	let d_y0_z = snoise([x_position, y_position - finite_difference_amount, z_position, time + offset_z])
+	let d_y1_x = snoise([x_position, y_position + finite_difference_amount, z_position, time + offset_x])
+	let d_y1_z = snoise([x_position, y_position + finite_difference_amount, z_position, time + offset_z])
 
-	let d_z0_x = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances - finite_difference_amount, time + offset_x])
-	let d_z0_y = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances - finite_difference_amount, time + offset_y])
-	let d_z1_x = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances + finite_difference_amount, time + offset_x])
-	let d_z1_y = snoise([this.thread.x / instances, this.thread.y / instances, this.thread.z / instances + finite_difference_amount, time + offset_y])
+	let d_z0_x = snoise([x_position, y_position, z_position - finite_difference_amount, time + offset_x])
+	let d_z0_y = snoise([x_position, y_position, z_position - finite_difference_amount, time + offset_y])
+	let d_z1_x = snoise([x_position, y_position, z_position + finite_difference_amount, time + offset_x])
+	let d_z1_y = snoise([x_position, y_position, z_position + finite_difference_amount, time + offset_y])
 
-	let curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * Math.E)
-	let curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * Math.E)
-	let curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * Math.E)
+	let curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * finite_difference_amount)
+	let curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * finite_difference_amount)
+	let curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * finite_difference_amount)
 
-	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z)) * 100 
+	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z)) / 0.1
 
 	curl_x /= curl_magnitude
 	curl_y /= curl_magnitude
 	curl_z /= curl_magnitude
 
-	return [curl_x, curl_y, curl_z];
-}).setOutput([instances, instances, instances]);
+	return [curl_x, curl_y, curl_z]
+	// return [this.thread.x, this.thread.y, this.thread.z]
+}).setOutput([instances, instances, instances])
 
 var time_started = Date.now() - (Math.random() * 50000)
 
@@ -253,23 +259,80 @@ var material = new THREE.PointsMaterial({
 
 var geometry = new THREE.BufferGeometry()
 var vertices = new Float32Array(instances * instances * instances * 3)
-
+geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3))
 
 for (let i = 0; i < instances; i++) {
 	for (let j = 0; j < instances; j++) {
 		for (let k = 0; k < instances; k++) {
 			let location = ((i * instances + j) * instances + k) * 3
-			vertices[location + 0] = +0.0
-			vertices[location + 1] = +0.0
-			vertices[location + 2] = +0.0
+			vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
+			vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
+			vertices[location + 2] = (k - instances / 2 + 0.5) * (5 / instances)
+			// vertices[location + 2] = 0
 		}
 	}
 }
 
-geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3))
 
 var polygon = new THREE.Points(geometry, material)
 objects.add(polygon)
+
+
+var line_length = 128
+var line_geometry = new THREE.BufferGeometry()
+var line_vertices = new Float32Array(instances * instances * instances * line_length * 6)
+line_geometry.addAttribute('position', new THREE.BufferAttribute(line_vertices, 3))
+
+for (let i = 0; i < instances; i++) {
+	for (let j = 0; j < instances; j++) {
+		for (let k = 0; k < instances; k++) {
+			let original_location = ((i * instances + j) * instances + k) * 3
+
+			for(let l = 0; l < line_length * 2; l++) {
+				let location = (((i * instances + j) * instances + k) * line_length + l) * 6
+
+				line_vertices[location + 0] = vertices[original_location + 0]
+				line_vertices[location + 1] = vertices[original_location + 1]
+				line_vertices[location + 2] = vertices[original_location + 2]
+				line_vertices[location + 3] = vertices[original_location + 0]
+				line_vertices[location + 4] = vertices[original_location + 1]
+				line_vertices[location + 5] = vertices[original_location + 2]
+			}
+		}
+	}
+}
+
+
+var lineSegments = new THREE.LineSegments(
+	line_geometry, 
+	new THREE.LineBasicMaterial({ 
+		color: 0x333333,
+		// color: 0xFFFFFF,
+}));
+// lineSegments.computeLineDistances();
+// lineSegments.material.blending = THREE.AdditiveBlending;
+// lineSegments.material.transparent = true;
+objects.add(lineSegments);
+
+
+
+
+
+
+//--------------------------------------------------
+
+// Instanced Geometry (https://codepen.io/mnmxmx/pen/rzqoeW)
+//--------------------------------------------------
+// var original_object = new THREE.OctahedronBufferGeometry(1, 0)
+// var instanced_geometries = new THREE.InstancedBufferGeometry()
+// var instanced_vertices = original_object.attributes.position.clone()
+// instanced_geometries.addAttribute('position', instanced_vertices)
+// var instanced_normals = original_object.attributes.normal.clone()
+// instanced_geometries.addAttribute('normal', instanced_normals)
+// var instanced_uvs = original_object.attributes.uv.clone()
+// instanced_geometries.addAttribute('uv', instanced_uvs)
+
+// instanced_geometries.maxInstanceCount = 200
 
 //--------------------------------------------------
 
@@ -281,35 +344,68 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
+	// let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
 	let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
 
-	objects.rotation.y -= 0.002
+	// objects.rotation.y -= 0.002
 
 	for (let i = 0; i < instances; i++) {
 		for (let j = 0; j < instances; j++) {
 			for (let k = 0; k < instances; k++) {
-				let location = ((((i * instances) + j) * instances) + k) * 3
+				let location = ((i * instances + j) * instances + k) * 3
+				let line_location = 0
 
-				vertices[location + 0] += values[i][j][k][0]
-				vertices[location + 1] += values[i][j][k][1]
-				vertices[location + 2] += values[i][j][k][2]
-				vertices[location + 0] *= 0.999
-				vertices[location + 1] *= 0.999
-				vertices[location + 2] *= 0.999
+				if (line_vertices[(((i * instances + j) * instances + k) * line_length + line_length - 2) * 6] === 
+					line_vertices[(((i * instances + j) * instances + k) * line_length + line_length - 1) * 6]) {
+					vertices[location + 0] += values[k][j][i][0]
+					vertices[location + 1] += values[k][j][i][1]
+					vertices[location + 2] += values[k][j][i][2]
 
-				// if (vertices[location + 1] > 8) {
-				// 	vertices[location + 0] = +0.0
-				// 	vertices[location + 1] = -8.0
-				// 	vertices[location + 2] = +0.0
-				// } else {
-				// 	vertices[location + 0] *= 0.999
-				// 	vertices[location + 1] += 0.025
-				// 	vertices[location + 2] *= 0.999
-				// }
+
+					for (let l = line_length - 1; l > 0; l--) {
+						line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
+
+						line_vertices[line_location + 0] = line_vertices[line_location - 6]
+						line_vertices[line_location + 1] = line_vertices[line_location - 5]
+						line_vertices[line_location + 2] = line_vertices[line_location - 4]
+						line_vertices[line_location + 3] = line_vertices[line_location - 3]
+						line_vertices[line_location + 4] = line_vertices[line_location - 2]
+						line_vertices[line_location + 5] = line_vertices[line_location - 1]
+
+					}
+
+					line_location = (((i * instances + j) * instances + k) * line_length) * 6
+
+					line_vertices[line_location + 3] = line_vertices[line_location + 0]
+					line_vertices[line_location + 4] = line_vertices[line_location + 1]
+					line_vertices[line_location + 5] = line_vertices[line_location + 2]
+					line_vertices[line_location + 0] = vertices[location + 0]
+					line_vertices[line_location + 1] = vertices[location + 1]
+					line_vertices[line_location + 2] = vertices[location + 2]
+
+				} else {
+					vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
+					vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
+					vertices[location + 2] = (k - instances / 2 + 0.5) * (5 / instances)
+					// vertices[location + 2] = 0
+
+					for (let l = 0; l < line_length; l++) {
+						line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
+
+						line_vertices[line_location + 0] = vertices[location + 0]
+						line_vertices[line_location + 1] = vertices[location + 1]
+						line_vertices[line_location + 2] = vertices[location + 2]
+						line_vertices[line_location + 3] = vertices[location + 0]
+						line_vertices[line_location + 4] = vertices[location + 1]
+						line_vertices[line_location + 5] = vertices[location + 2]
+
+					}
+				}
 			}
 		}
 	}
 	geometry.attributes.position.needsUpdate = true
+	line_geometry.attributes.position.needsUpdate = true
 
 	renderer.render(scene, camera)
 	stats.end()
