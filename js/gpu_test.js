@@ -28,7 +28,7 @@ scene.background = new THREE.Color(0xFFFCF2)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
-camera.position.z = 8.0
+camera.position.z = 16.0
 //--------------------------------------------------
 
 // Mouse Position
@@ -253,9 +253,10 @@ var time_started = Date.now() - (Math.random() * 50000)
 // Cube
 //--------------------------------------------------
 var material = new THREE.PointsMaterial({
-		color: 0xFFBF40,
-		size: .01,
-		sizeAttenuation: true,
+		// color: 0xFFBF40,
+		color: 0x333333,
+		size: .1,
+		sizeAttenuation: false,
 })
 
 var geometry = new THREE.BufferGeometry()
@@ -279,7 +280,7 @@ var polygon = new THREE.Points(geometry, material)
 objects.add(polygon)
 
 
-var line_length = 128
+var line_length = 256
 var line_geometry = new THREE.BufferGeometry()
 var line_vertices = new Float32Array(instances * instances * instances * line_length * 6)
 line_geometry.addAttribute('position', new THREE.BufferAttribute(line_vertices, 3))
@@ -308,7 +309,11 @@ var lineSegments = new THREE.LineSegments(
 	line_geometry, 
 	new THREE.LineBasicMaterial({ 
 		color: 0x333333,
+		// transparency: true,
+		// opacity: 0.8,
+		// blending: THREE.AdditiveBlending,
 }));
+
 objects.add(lineSegments);
 
 
@@ -369,13 +374,16 @@ objects.add(lineSegments);
 
 // Operations each frame
 //--------------------------------------------------
+
+var seed = Math.random() * 100
+
 var animate = function () {
 	stats.begin()
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
 	// let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
-	let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
+	let values = noise4D(seed, instances, vertices)
 
 	objects.rotation.y -= 0.002
 
@@ -383,54 +391,60 @@ var animate = function () {
 		for (let j = 0; j < instances; j++) {
 			for (let k = 0; k < instances; k++) {
 				let location = ((i * instances + j) * instances + k) * 3
-				let line_location = 0
+				let line_location = ((i * instances + j) * instances + k) * line_length + line_length
 
-				if (line_vertices[(((i * instances + j) * instances + k) * line_length + line_length - 2) * 6] === 
-					line_vertices[(((i * instances + j) * instances + k) * line_length + line_length - 1) * 6]) {
-					vertices[location + 0] += values[k][j][i][0]
-					vertices[location + 1] += values[k][j][i][1]
-					vertices[location + 2] += values[k][j][i][2]
+				if ((line_vertices[(line_location - 2) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
+					(line_vertices[(line_location - 2) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
+					(line_vertices[(line_location - 2) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2])) {
 
+					if ((line_vertices[(line_location - 1) * 6 + 0] != (i - instances / 2 + 0.5) * (5 / instances)) | 
+						(line_vertices[(line_location - 1) * 6 + 1] != (j - instances / 2 + 0.5) * (5 / instances)) | 
+						(line_vertices[(line_location - 1) * 6 + 2] != (k - instances / 2 + 0.5) * (5 / instances))) {
 
-					for (let l = line_length - 1; l > 0; l--) {
-						line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
+						seed += Math.random() * 5
 
-						line_vertices[line_location + 0] = line_vertices[line_location - 6]
-						line_vertices[line_location + 1] = line_vertices[line_location - 5]
-						line_vertices[line_location + 2] = line_vertices[line_location - 4]
-						line_vertices[line_location + 3] = line_vertices[line_location - 3]
-						line_vertices[line_location + 4] = line_vertices[line_location - 2]
-						line_vertices[line_location + 5] = line_vertices[line_location - 1]
+						vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
+						vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
+						vertices[location + 2] = (k - instances / 2 + 0.5) * (5 / instances)
 
-					}
+						for (let l = 0; l < line_length; l++) {
+							line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
 
-					line_location = (((i * instances + j) * instances + k) * line_length) * 6
-
-					line_vertices[line_location + 3] = line_vertices[line_location + 0]
-					line_vertices[line_location + 4] = line_vertices[line_location + 1]
-					line_vertices[line_location + 5] = line_vertices[line_location + 2]
-					line_vertices[line_location + 0] = vertices[location + 0]
-					line_vertices[line_location + 1] = vertices[location + 1]
-					line_vertices[line_location + 2] = vertices[location + 2]
-
-				} else {
-					vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
-					vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
-					vertices[location + 2] = (k - instances / 2 + 0.5) * (5 / instances)
-					// vertices[location + 2] = 0
-
-					for (let l = 0; l < line_length; l++) {
-						line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
-
-						line_vertices[line_location + 0] = vertices[location + 0]
-						line_vertices[line_location + 1] = vertices[location + 1]
-						line_vertices[line_location + 2] = vertices[location + 2]
-						line_vertices[line_location + 3] = vertices[location + 0]
-						line_vertices[line_location + 4] = vertices[location + 1]
-						line_vertices[line_location + 5] = vertices[location + 2]
-
+							line_vertices[line_location + 0] = vertices[location + 0]
+							line_vertices[line_location + 1] = vertices[location + 1]
+							line_vertices[line_location + 2] = vertices[location + 2]
+							line_vertices[line_location + 3] = vertices[location + 0]
+							line_vertices[line_location + 4] = vertices[location + 1]
+							line_vertices[line_location + 5] = vertices[location + 2]
+						}
+					} else {
+						vertices[location + 0] += values[k][j][i][0]
+						vertices[location + 1] += values[k][j][i][1]
+						vertices[location + 2] += values[k][j][i][2]
 					}
 				}
+
+				for (let l = line_length - 1; l > 0; l--) {
+					line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
+
+					line_vertices[line_location + 0] = line_vertices[line_location - 6]
+					line_vertices[line_location + 1] = line_vertices[line_location - 5]
+					line_vertices[line_location + 2] = line_vertices[line_location - 4]
+					line_vertices[line_location + 3] = line_vertices[line_location - 3]
+					line_vertices[line_location + 4] = line_vertices[line_location - 2]
+					line_vertices[line_location + 5] = line_vertices[line_location - 1]
+
+				}
+
+				line_location = (((i * instances + j) * instances + k) * line_length) * 6
+
+				line_vertices[line_location + 3] = line_vertices[line_location + 0]
+				line_vertices[line_location + 4] = line_vertices[line_location + 1]
+				line_vertices[line_location + 5] = line_vertices[line_location + 2]
+				line_vertices[line_location + 0] = vertices[location + 0]
+				line_vertices[line_location + 1] = vertices[location + 1]
+				line_vertices[line_location + 2] = vertices[location + 2]
+
 			}
 		}
 	}
