@@ -20,7 +20,8 @@ window.addEventListener('resize', onWindowResize, false)
 //--------------------------------------------------
 var scene = new THREE.Scene()
 // scene.background = new THREE.Color(0xCCCCCC)
-scene.background = new THREE.Color(0x222222)
+// scene.background = new THREE.Color(0x222222)
+scene.background = new THREE.Color(0xFFFCF2)
 //--------------------------------------------------
 
 
@@ -307,11 +308,7 @@ var lineSegments = new THREE.LineSegments(
 	line_geometry, 
 	new THREE.LineBasicMaterial({ 
 		color: 0x333333,
-		// color: 0xFFFFFF,
 }));
-// lineSegments.computeLineDistances();
-// lineSegments.material.blending = THREE.AdditiveBlending;
-// lineSegments.material.transparent = true;
 objects.add(lineSegments);
 
 
@@ -323,16 +320,49 @@ objects.add(lineSegments);
 
 // Instanced Geometry (https://codepen.io/mnmxmx/pen/rzqoeW)
 //--------------------------------------------------
+
+// var edge_color = 0xFF002C
+
+// var fill_colors = [0xB3D9FF, 0xFFF6B3, 0xFFB3C5]
+// var other_fill_colors = [0xFFBCC4, 0xC4FFBC, 0xBCCBFF, 0xFFD9BC]
+
 // var original_object = new THREE.OctahedronBufferGeometry(1, 0)
 // var instanced_geometries = new THREE.InstancedBufferGeometry()
+
 // var instanced_vertices = original_object.attributes.position.clone()
 // instanced_geometries.addAttribute('position', instanced_vertices)
+
 // var instanced_normals = original_object.attributes.normal.clone()
 // instanced_geometries.addAttribute('normal', instanced_normals)
+
 // var instanced_uvs = original_object.attributes.uv.clone()
 // instanced_geometries.addAttribute('uv', instanced_uvs)
 
-// instanced_geometries.maxInstanceCount = 200
+// instanced_geometries.maxInstanceCount = instances * instances
+
+// var nums = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true, 1)
+// var randoms = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true,  1)
+// var colors = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 3), 3, true,  1)
+
+
+// for(let i = 0; i < nums.count; i++){
+// 	var _color = fill_colors[Math.floor(Math.random() * fill_colors.length)];
+
+// 	nums.setX(i, i);
+// 	randoms.setX(i, Math.random() * 0.5 + 1);
+// 	colors.setXYZ(i, _color.r, _color.g, _color.b);
+// }
+
+// geometry.addAttribute("aNum", nums);
+// geometry.addAttribute("aRandom", randoms);
+// geometry.addAttribute("aColor", colors);
+
+// var scale = {
+// 	x: 2, 
+// 	y: 8,
+// 	z: 2
+// }
+
 
 //--------------------------------------------------
 
@@ -347,7 +377,7 @@ var animate = function () {
 	// let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
 	let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
 
-	// objects.rotation.y -= 0.002
+	objects.rotation.y -= 0.002
 
 	for (let i = 0; i < instances; i++) {
 		for (let j = 0; j < instances; j++) {
