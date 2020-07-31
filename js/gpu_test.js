@@ -252,16 +252,17 @@ var time_started = Date.now() - (Math.random() * 50000)
 
 // Cube
 //--------------------------------------------------
-var material = new THREE.PointsMaterial({
-		// color: 0xFFBF40,
-		color: 0x333333,
-		size: .1,
-		sizeAttenuation: false,
-})
+// var material = new THREE.PointsMaterial({
+// 		// color: 0xFFBF40,
+// 		color: 0x333333,
+// 		size: .1,
+// 		sizeAttenuation: false,
+// 		blending: THREE.SubtractiveBlending,
+// })
 
-var geometry = new THREE.BufferGeometry()
+// var geometry = new THREE.BufferGeometry()
 var vertices = new Float32Array(instances * instances * instances * 3)
-geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3))
+// geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3))
 
 for (let i = 0; i < instances; i++) {
 	for (let j = 0; j < instances; j++) {
@@ -270,14 +271,13 @@ for (let i = 0; i < instances; i++) {
 			vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
 			vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
 			vertices[location + 2] = (k - instances / 2 + 0.5) * (5 / instances)
-			// vertices[location + 2] = 0
 		}
 	}
 }
 
 
-var polygon = new THREE.Points(geometry, material)
-objects.add(polygon)
+// var polygon = new THREE.Points(geometry, material)
+// objects.add(polygon)
 
 
 var line_length = 256
@@ -307,11 +307,10 @@ for (let i = 0; i < instances; i++) {
 
 var lineSegments = new THREE.LineSegments(
 	line_geometry, 
-	new THREE.LineBasicMaterial({ 
-		color: 0x333333,
-		// transparency: true,
-		// opacity: 0.8,
-		// blending: THREE.AdditiveBlending,
+	new THREE.LineBasicMaterial({
+		color: 0x505050,
+		blending: THREE.SubtractiveBlending,
+		// blending: THREE.MultiplyBlending,
 }));
 
 objects.add(lineSegments);
@@ -401,7 +400,9 @@ var animate = function () {
 						(line_vertices[(line_location - 1) * 6 + 1] != (j - instances / 2 + 0.5) * (5 / instances)) | 
 						(line_vertices[(line_location - 1) * 6 + 2] != (k - instances / 2 + 0.5) * (5 / instances))) {
 
-						seed += Math.random() * 5
+						seed += Math.random() * .01
+
+						console.log(seed)
 
 						vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
 						vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
@@ -448,7 +449,7 @@ var animate = function () {
 			}
 		}
 	}
-	geometry.attributes.position.needsUpdate = true
+	// geometry.attributes.position.needsUpdate = true
 	line_geometry.attributes.position.needsUpdate = true
 
 	renderer.render(scene, camera)
