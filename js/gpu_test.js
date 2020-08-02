@@ -28,8 +28,11 @@ scene.background = new THREE.Color(0xFFFCF2)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
-camera.position.z = 16.0
-//--------------------------------------------------
+camera.position.x = 8
+camera.position.y = 4
+camera.position.z = 16
+// camera.lookAt(0, 4, 8)
+// //--------------------------------------------------
 
 // Mouse Position
 //--------------------------------------------------
@@ -55,6 +58,7 @@ document.body.appendChild(renderer.domElement)
 // Creating a group to hold objects
 //--------------------------------------------------
 var objects = new THREE.Group()
+objects.position.set(0, -8, -8)
 scene.add(objects)
 //--------------------------------------------------
 
@@ -205,12 +209,13 @@ float snoise(vec4 v)
 
 var instances = 8
 
-const noise4D = gpu.createKernel(function(time, instances, positions) {
+const noise4D = gpu.createKernel(function(time, instances, positions, normalized) {
 
 	let offset_x = 100
 	let offset_y = 200
 	let offset_z = 300
-	let finite_difference_amount = 0.1
+	let finite_difference_amount = 0.01
+	let scale = 0.1
 
 	let x_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 0] / 10
 	let y_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 1] / 10
@@ -235,14 +240,21 @@ const noise4D = gpu.createKernel(function(time, instances, positions) {
 	let curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * finite_difference_amount)
 	let curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * finite_difference_amount)
 
-	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z)) / 0.1
+	let curl_magnitude = Math.sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z))
 
 	curl_x /= curl_magnitude
 	curl_y /= curl_magnitude
 	curl_z /= curl_magnitude
 
-	return [curl_x, curl_y, curl_z]
-	// return [this.thread.x, this.thread.y, this.thread.z]
+	if (normalized) {
+		curl_x = Math.round(curl_x)
+		curl_y = Math.round(curl_y)
+		curl_z = Math.round(curl_z)
+	}
+
+
+
+	return [curl_x * scale, curl_y * scale, curl_z * scale]
 }).setOutput([instances, instances, instances])
 
 var time_started = Date.now() - (Math.random() * 50000)
@@ -325,41 +337,41 @@ objects.add(lineSegments);
 // Instanced Geometry (https://codepen.io/mnmxmx/pen/rzqoeW)
 //--------------------------------------------------
 
-// var edge_color = 0xFF002C
+var edge_color = 0xFF002C
 
-// var fill_colors = [0xB3D9FF, 0xFFF6B3, 0xFFB3C5]
-// var other_fill_colors = [0xFFBCC4, 0xC4FFBC, 0xBCCBFF, 0xFFD9BC]
+var fill_colors = [0xB3D9FF, 0xFFF6B3, 0xFFB3C5]
+var other_fill_colors = [0xFFBCC4, 0xC4FFBC, 0xBCCBFF, 0xFFD9BC]
 
-// var original_object = new THREE.OctahedronBufferGeometry(1, 0)
-// var instanced_geometries = new THREE.InstancedBufferGeometry()
+var original_object = new THREE.OctahedronBufferGeometry(1, 0)
+var instanced_geometries = new THREE.InstancedBufferGeometry()
 
-// var instanced_vertices = original_object.attributes.position.clone()
-// instanced_geometries.addAttribute('position', instanced_vertices)
+var instanced_vertices = original_object.attributes.position.clone()
+instanced_geometries.addAttribute('position', instanced_vertices)
 
-// var instanced_normals = original_object.attributes.normal.clone()
-// instanced_geometries.addAttribute('normal', instanced_normals)
+var instanced_normals = original_object.attributes.normal.clone()
+instanced_geometries.addAttribute('normal', instanced_normals)
 
-// var instanced_uvs = original_object.attributes.uv.clone()
-// instanced_geometries.addAttribute('uv', instanced_uvs)
+var instanced_uvs = original_object.attributes.uv.clone()
+instanced_geometries.addAttribute('uv', instanced_uvs)
 
-// instanced_geometries.maxInstanceCount = instances * instances
+instanced_geometries.maxInstanceCount = instances * instances
 
-// var nums = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true, 1)
-// var randoms = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true,  1)
-// var colors = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 3), 3, true,  1)
+var nums = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true, 1)
+var randoms = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true,  1)
+var colors = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 3), 3, true,  1)
 
 
-// for(let i = 0; i < nums.count; i++){
-// 	var _color = fill_colors[Math.floor(Math.random() * fill_colors.length)];
+for(let i = 0; i < nums.count; i++){
+	var _color = fill_colors[Math.floor(Math.random() * fill_colors.length)];
 
-// 	nums.setX(i, i);
-// 	randoms.setX(i, Math.random() * 0.5 + 1);
-// 	colors.setXYZ(i, _color.r, _color.g, _color.b);
-// }
+	nums.setX(i, i);
+	randoms.setX(i, Math.random() * 0.5 + 1);
+	colors.setXYZ(i, _color.r, _color.g, _color.b);
+}
 
-// geometry.addAttribute("aNum", nums);
-// geometry.addAttribute("aRandom", randoms);
-// geometry.addAttribute("aColor", colors);
+instanced_geometries.addAttribute("aNum", nums);
+instanced_geometries.addAttribute("aRandom", randoms);
+instanced_geometries.addAttribute("aColor", colors);
 
 // var scale = {
 // 	x: 2, 
@@ -375,34 +387,46 @@ objects.add(lineSegments);
 //--------------------------------------------------
 
 var seed = Math.random() * 100
+var extend = null
+var reset = null
+var location = 0
+var line_location = 0
+var normalized = false
 
 var animate = function () {
 	stats.begin()
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
-	// let values = noise4D(Math.max((Date.now() - time_started) / 5000, 0), instances, vertices)
-	let values = noise4D(seed, instances, vertices)
+	let values = noise4D(seed, instances, vertices, normalized)
 
-	objects.rotation.y -= 0.002
+	extend = null
+	reset = null
 
 	for (let i = 0; i < instances; i++) {
 		for (let j = 0; j < instances; j++) {
 			for (let k = 0; k < instances; k++) {
-				let location = ((i * instances + j) * instances + k) * 3
-				let line_location = ((i * instances + j) * instances + k) * line_length + line_length
+				location = ((i * instances + j) * instances + k) * 3
+				line_location = ((i * instances + j) * instances + k) * line_length + line_length
 
-				if ((line_vertices[(line_location - 2) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
-					(line_vertices[(line_location - 2) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
-					(line_vertices[(line_location - 2) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2])) {
+				if (extend === null) {
+					extend =   ((line_vertices[(line_location - 2) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
+								(line_vertices[(line_location - 2) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
+								(line_vertices[(line_location - 2) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2]))
+				}
 
-					if ((line_vertices[(line_location - 1) * 6 + 0] != (i - instances / 2 + 0.5) * (5 / instances)) | 
-						(line_vertices[(line_location - 1) * 6 + 1] != (j - instances / 2 + 0.5) * (5 / instances)) | 
-						(line_vertices[(line_location - 1) * 6 + 2] != (k - instances / 2 + 0.5) * (5 / instances))) {
+				if (extend) {
+					if (reset === null) {
+						reset =    ((line_vertices[(line_location - 1) * 6 + 0] != (i - instances / 2 + 0.5) * (5 / instances)) | 
+									(line_vertices[(line_location - 1) * 6 + 1] != (j - instances / 2 + 0.5) * (5 / instances)) | 
+									(line_vertices[(line_location - 1) * 6 + 2] != (k - instances / 2 + 0.5) * (5 / instances)))
+						if (reset) {
+							seed += Math.random() * 10
+							normalized = !normalized
+						}
+					}
 
-						seed += Math.random() * .01
-
-						console.log(seed)
+					if (reset) {
 
 						vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
 						vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
@@ -425,6 +449,7 @@ var animate = function () {
 					}
 				}
 
+				// Move tail fowards
 				for (let l = line_length - 1; l > 0; l--) {
 					line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
 
