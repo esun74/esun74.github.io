@@ -19,8 +19,8 @@ window.addEventListener('resize', onWindowResize, false)
 // Setting the Scene
 //--------------------------------------------------
 var scene = new THREE.Scene()
-// scene.background = new THREE.Color(0xCCCCCC)
-scene.background = new THREE.Color(0x222222)
+scene.background = new THREE.Color(0x000000)
+// scene.background = new THREE.Color(0x222222)
 // scene.background = new THREE.Color(0xFFFCF2)
 //--------------------------------------------------
 
@@ -29,7 +29,6 @@ scene.background = new THREE.Color(0x222222)
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
 camera.position.set(8, 4, 16)
-// camera.lookAt(0, 4, 8)
 // //--------------------------------------------------
 
 // Mouse Position
@@ -204,15 +203,14 @@ float snoise(vec4 v)
 
 `)
 
-var instances = 4
+var instances = 8
 
-const noise4D = gpu.createKernel(function(time, instances, positions, normalized) {
+const noise4D = gpu.createKernel(function(time, instances, positions, normalized, scale) {
 
 	let offset_x = 100
 	let offset_y = 200
 	let offset_z = 300
 	let finite_difference_amount = 0.01
-	let scale = 0.05
 
 	let x_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 0] / 10
 	let y_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 1] / 10
@@ -289,7 +287,7 @@ for (let i = 0; i < instances; i++) {
 // objects.add(polygon)
 
 
-var line_length = 512
+var line_length = 256
 var line_geometry = new THREE.BufferGeometry()
 var line_vertices = new Float32Array(instances * instances * instances * line_length * 6)
 var line_colors = new Float32Array(instances * instances * instances * line_length * 6)
@@ -311,13 +309,13 @@ for (let i = 0; i < instances; i++) {
 				line_vertices[location + 4] = vertices[original_location + 1]
 				line_vertices[location + 5] = vertices[original_location + 2]
 
-				let this_color = Math.random() > 0.96
-				line_colors[location + 0] = this_color
-				line_colors[location + 1] = this_color
-				line_colors[location + 2] = this_color
-				line_colors[location + 3] = 0
-				line_colors[location + 4] = 0
-				line_colors[location + 5] = 0
+				let this_color = Math.random() > 0.99
+				line_colors[location + 0] = this_color ? 1.0 : 0.1
+				line_colors[location + 1] = this_color ? 1.0 : 0.3
+				line_colors[location + 2] = this_color ? 1.0 : 0.2
+				line_colors[location + 3] = 0.2
+				line_colors[location + 4] = 0.3
+				line_colors[location + 5] = 0.8
 			}
 		}
 	}
@@ -329,7 +327,7 @@ var lineSegments = new THREE.LineSegments(
 	new THREE.LineBasicMaterial({
 		vertexColors: THREE.VertexColors,
 		// color: 0x505050,
-		// blending: THREE.AdditiveBlending,
+		blending: THREE.AdditiveBlending,
 		// blending: THREE.SubtractiveBlending,
 		// blending: THREE.MultiplyBlending,
 }));
@@ -402,94 +400,97 @@ var location = 0
 var line_location = 0
 var normalized = false
 var frame = 0
+var last_frame = Date.now()
+var average_fps = 60
 
 var animate = function () {
 	stats.begin()
-	// objects.rotation.y -= 0.002
+	objects.rotation.y -= 0.001
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
 
 	frame += 1
-	if (frame % 1 === 0) {
-		let values = noise4D(seed, instances, vertices, normalized)
+	average_fps = 0.95 * average_fps + 0.05 * (1000 / (Date.now() - last_frame))
+	console.log(average_fps)
+	last_frame = Date.now()
 
-		extend = null
-		reset = null
 
-		for (let i = 0; i < instances; i++) {
-			for (let j = 0; j < instances; j++) {
-				for (let k = 0; k < instances; k++) {
-					location = ((i * instances + j) * instances + k) * 3
-					line_location = ((i * instances + j) * instances + k) * line_length + line_length
+	let values = noise4D(seed, instances, vertices, normalized, 0.1)
 
-					if (extend === null) {
-						extend =   ((line_vertices[(line_location - 2) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
-									(line_vertices[(line_location - 2) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
-									(line_vertices[(line_location - 2) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2]))
-					}
+	extend = null
+	reset = null
 
-					if (extend) {
-						if (reset === null) {
-							reset =    ((line_vertices[(line_location - 1) * 6 + 0] != (i - instances / 2 + 0.5) * (5 / instances)) | 
-										(line_vertices[(line_location - 1) * 6 + 1] != (j - instances / 2 + 0.5) * (5 / instances)) | 
-										(line_vertices[(line_location - 1) * 6 + 2] != (k - instances / 2 + 0.5) * (5 / instances)))
-							if (reset) {
-								seed += Math.random() * 10
-								normalized = !normalized
-							}
-						}
+	for (let i = 0; i < instances; i++) {
+		for (let j = 0; j < instances; j++) {
+			for (let k = 0; k < instances; k++) {
+				location = ((i * instances + j) * instances + k) * 3
+				line_location = ((i * instances + j) * instances + k) * line_length + line_length
 
+				if (extend === null) {
+					extend =   ((line_vertices[(line_location - 2) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
+								(line_vertices[(line_location - 2) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
+								(line_vertices[(line_location - 2) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2]))
+				}
+
+				if (extend) {
+					if (reset === null) {
+						reset =    ((line_vertices[(line_location - 1) * 6 + 0] != (i - instances / 2 + 0.5) * (5 / instances)) | 
+									(line_vertices[(line_location - 1) * 6 + 1] != (j - instances / 2 + 0.5) * (5 / instances)) | 
+									(line_vertices[(line_location - 1) * 6 + 2] != (k - instances / 2 + 0.5) * (5 / instances)))
 						if (reset) {
-
-							vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
-							vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
-							vertices[location + 2] = (k - instances / 2 + 0.5) * (5 / instances)
-
-							for (let l = 0; l < line_length; l++) {
-								line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
-
-								line_vertices[line_location + 0] = vertices[location + 0]
-								line_vertices[line_location + 1] = vertices[location + 1]
-								line_vertices[line_location + 2] = vertices[location + 2]
-								line_vertices[line_location + 3] = vertices[location + 0]
-								line_vertices[line_location + 4] = vertices[location + 1]
-								line_vertices[line_location + 5] = vertices[location + 2]
-							}
-						} else {
-							vertices[location + 0] += values[k][j][i][0]
-							vertices[location + 1] += values[k][j][i][1]
-							vertices[location + 2] += values[k][j][i][2]
+							seed += Math.random() * 10
+							normalized = !normalized
 						}
 					}
 
-					// Move tail fowards
-					for (let l = line_length - 1; l > 0; l--) {
-						line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
+					if (reset) {
 
-						line_vertices[line_location + 0] = line_vertices[line_location - 6]
-						line_vertices[line_location + 1] = line_vertices[line_location - 5]
-						line_vertices[line_location + 2] = line_vertices[line_location - 4]
-						line_vertices[line_location + 3] = line_vertices[line_location - 3]
-						line_vertices[line_location + 4] = line_vertices[line_location - 2]
-						line_vertices[line_location + 5] = line_vertices[line_location - 1]
+						vertices[location + 0] = (i - instances / 2 + 0.5) * (5 / instances)
+						vertices[location + 1] = (j - instances / 2 + 0.5) * (5 / instances)
+						vertices[location + 2] = (k - instances / 2 + 0.5) * (5 / instances)
 
+						for (let l = 0; l < line_length; l++) {
+							line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
+
+							line_vertices[line_location + 0] = vertices[location + 0]
+							line_vertices[line_location + 1] = vertices[location + 1]
+							line_vertices[line_location + 2] = vertices[location + 2]
+							line_vertices[line_location + 3] = vertices[location + 0]
+							line_vertices[line_location + 4] = vertices[location + 1]
+							line_vertices[line_location + 5] = vertices[location + 2]
+						}
+					} else {
+						vertices[location + 0] += values[k][j][i][0]
+						vertices[location + 1] += values[k][j][i][1]
+						vertices[location + 2] += values[k][j][i][2]
 					}
+				}
 
-					line_location = (((i * instances + j) * instances + k) * line_length) * 6
+				for (let l = line_length - 1; l > 0; l--) {
+					line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
 
-					line_vertices[line_location + 3] = line_vertices[line_location + 0]
-					line_vertices[line_location + 4] = line_vertices[line_location + 1]
-					line_vertices[line_location + 5] = line_vertices[line_location + 2]
-					line_vertices[line_location + 0] = vertices[location + 0]
-					line_vertices[line_location + 1] = vertices[location + 1]
-					line_vertices[line_location + 2] = vertices[location + 2]
+					line_vertices[line_location + 0] = line_vertices[line_location - 6]
+					line_vertices[line_location + 1] = line_vertices[line_location - 5]
+					line_vertices[line_location + 2] = line_vertices[line_location - 4]
+					line_vertices[line_location + 3] = line_vertices[line_location - 3]
+					line_vertices[line_location + 4] = line_vertices[line_location - 2]
+					line_vertices[line_location + 5] = line_vertices[line_location - 1]
 
 				}
+
+				line_location = (((i * instances + j) * instances + k) * line_length) * 6
+
+				line_vertices[line_location + 3] = line_vertices[line_location + 0]
+				line_vertices[line_location + 4] = line_vertices[line_location + 1]
+				line_vertices[line_location + 5] = line_vertices[line_location + 2]
+				line_vertices[line_location + 0] = vertices[location + 0]
+				line_vertices[line_location + 1] = vertices[location + 1]
+				line_vertices[line_location + 2] = vertices[location + 2]
+
 			}
 		}
-		// geometry.attributes.position.needsUpdate = true
-		line_geometry.attributes.position.needsUpdate = true
 	}
+	line_geometry.attributes.position.needsUpdate = true
 
 	renderer.render(scene, camera)
 	stats.end()
