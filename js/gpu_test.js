@@ -205,12 +205,13 @@ float snoise(vec4 v)
 
 var instances = 8
 
-const noise4D = gpu.createKernel(function(time, instances, positions, normalized, scale) {
+const noise4D = gpu.createKernel(function(time, instances, positions, normalized) {
 
 	let offset_x = 100
 	let offset_y = 200
 	let offset_z = 300
 	let finite_difference_amount = 0.01
+	let scale = 0.1
 
 	let x_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 0] / 10
 	let y_position = positions[((this.thread.x * instances + this.thread.y) * instances + this.thread.z) * 3 + 1] / 10
@@ -399,17 +400,16 @@ var reset = null
 var location = 0
 var line_location = 0
 var normalized = false
-var last_frame = Date.now()
 
 var animate = function () {
 	stats.begin()
 	objects.rotation.y -= 0.001
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
+
+
+	let values = noise4D(seed, instances, vertices, normalized)
 	
-	console.log((Math.round(Date.now() - last_frame) / 100))
-	let values = noise4D(seed, instances, vertices, normalized, (Math.round(Date.now() - last_frame) / 200))
-	last_frame = Date.now()
 
 	extend = null
 	reset = null
