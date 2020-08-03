@@ -310,12 +310,12 @@ for (let i = 0; i < instances; i++) {
 				line_vertices[location + 5] = vertices[original_location + 2]
 
 				let this_color = Math.random() > 0.99
-				line_colors[location + 0] = this_color ? 1.0 : 0.1
+				line_colors[location + 0] = this_color ? 1.0 : 0.2
 				line_colors[location + 1] = this_color ? 1.0 : 0.3
-				line_colors[location + 2] = this_color ? 1.0 : 0.2
+				line_colors[location + 2] = this_color ? 1.0 : 0.6
 				line_colors[location + 3] = 0.2
 				line_colors[location + 4] = 0.3
-				line_colors[location + 5] = 0.8
+				line_colors[location + 5] = 0.6
 			}
 		}
 	}
@@ -399,23 +399,17 @@ var reset = null
 var location = 0
 var line_location = 0
 var normalized = false
-var frame = 0
 var last_frame = Date.now()
-var average_fps = 60
 
 var animate = function () {
 	stats.begin()
 	objects.rotation.y -= 0.001
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
-
-	frame += 1
-	average_fps = 0.95 * average_fps + 0.05 * (1000 / (Date.now() - last_frame))
-	console.log(average_fps)
+	
+	console.log((Math.round(Date.now() - last_frame) / 100))
+	let values = noise4D(seed, instances, vertices, normalized, (Math.round(Date.now() - last_frame) / 200))
 	last_frame = Date.now()
-
-
-	let values = noise4D(seed, instances, vertices, normalized, 0.1)
 
 	extend = null
 	reset = null
