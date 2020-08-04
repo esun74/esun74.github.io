@@ -19,7 +19,7 @@ window.addEventListener('resize', onWindowResize, false)
 // Setting the Scene
 //--------------------------------------------------
 var scene = new THREE.Scene()
-scene.background = new THREE.Color(0x000000)
+scene.background = new THREE.Color(0x101010)
 // scene.background = new THREE.Color(0x222222)
 // scene.background = new THREE.Color(0xFFFCF2)
 //--------------------------------------------------
@@ -29,6 +29,7 @@ scene.background = new THREE.Color(0x000000)
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
 camera.position.set(8, 4, 16)
+camera.lookAt(0, 4, 8)
 // //--------------------------------------------------
 
 // Mouse Position
@@ -59,9 +60,9 @@ scene.add(objects)
 //--------------------------------------------------
 
 // Orbit Controls
-//--------------------------------------------------
-import {OrbitControls} from './OrbitControls.js'
-var controls = new OrbitControls(camera, renderer.domElement)
+// //--------------------------------------------------
+// import {OrbitControls} from './OrbitControls.js'
+// var controls = new OrbitControls(camera, renderer.domElement)
 //--------------------------------------------------
 
 
@@ -292,6 +293,7 @@ var line_length = 256
 var line_geometry = new THREE.BufferGeometry()
 var line_vertices = new Float32Array(instances * instances * instances * line_length * 6)
 var line_colors = new Float32Array(instances * instances * instances * line_length * 6)
+var line_colors_start = new Float32Array(instances * instances * instances * 3)
 line_geometry.addAttribute('position', new THREE.BufferAttribute(line_vertices, 3))
 line_geometry.addAttribute('color', new THREE.BufferAttribute(line_colors, 3))
 
@@ -299,6 +301,15 @@ for (let i = 0; i < instances; i++) {
 	for (let j = 0; j < instances; j++) {
 		for (let k = 0; k < instances; k++) {
 			let original_location = ((i * instances + j) * instances + k) * 3
+
+			// line_colors_start[original_location + 0] = 0.20
+			// line_colors_start[original_location + 1] = 0.30
+			// line_colors_start[original_location + 2] = 0.50
+
+			line_colors_start[original_location + 0] = 0.10 + (0.10 * Math.random())
+			line_colors_start[original_location + 1] = 0.20 + (0.10 * Math.random())
+			line_colors_start[original_location + 2] = 0.30 + (0.10 * Math.random())
+
 
 			for(let l = 0; l < line_length * 2; l++) {
 				let location = (((i * instances + j) * instances + k) * line_length + l) * 6
@@ -310,13 +321,14 @@ for (let i = 0; i < instances; i++) {
 				line_vertices[location + 4] = vertices[original_location + 1]
 				line_vertices[location + 5] = vertices[original_location + 2]
 
-				let this_color = Math.random() > 0.99
-				line_colors[location + 0] = this_color ? 1.0 : 0.2
-				line_colors[location + 1] = this_color ? 1.0 : 0.3
-				line_colors[location + 2] = this_color ? 1.0 : 0.6
-				line_colors[location + 3] = 0.2
-				line_colors[location + 4] = 0.3
-				line_colors[location + 5] = 0.6
+				let this_color = Math.random() > 0.96
+				line_colors[location + 0] = this_color ? 1.0 : line_colors_start[original_location + 0]
+				line_colors[location + 1] = this_color ? 1.0 : line_colors_start[original_location + 1]
+				line_colors[location + 2] = this_color ? 1.0 : line_colors_start[original_location + 2]
+				line_colors[location + 3] = line_colors_start[original_location + 0]
+				line_colors[location + 4] = line_colors_start[original_location + 1]
+				line_colors[location + 5] = line_colors_start[original_location + 2]
+
 			}
 		}
 	}
@@ -345,41 +357,41 @@ objects.add(lineSegments);
 // Instanced Geometry (https://codepen.io/mnmxmx/pen/rzqoeW)
 //--------------------------------------------------
 
-var edge_color = 0xFF002C
+// var edge_color = 0xFF002C
 
-var fill_colors = [0xB3D9FF, 0xFFF6B3, 0xFFB3C5]
-var other_fill_colors = [0xFFBCC4, 0xC4FFBC, 0xBCCBFF, 0xFFD9BC]
+// var fill_colors = [0xB3D9FF, 0xFFF6B3, 0xFFB3C5]
+// var other_fill_colors = [0xFFBCC4, 0xC4FFBC, 0xBCCBFF, 0xFFD9BC]
 
-var original_object = new THREE.OctahedronBufferGeometry(1, 0)
-var instanced_geometries = new THREE.InstancedBufferGeometry()
+// var original_object = new THREE.OctahedronBufferGeometry(1, 0)
+// var instanced_geometries = new THREE.InstancedBufferGeometry()
 
-var instanced_vertices = original_object.attributes.position.clone()
-instanced_geometries.addAttribute('position', instanced_vertices)
+// var instanced_vertices = original_object.attributes.position.clone()
+// instanced_geometries.addAttribute('position', instanced_vertices)
 
-var instanced_normals = original_object.attributes.normal.clone()
-instanced_geometries.addAttribute('normal', instanced_normals)
+// var instanced_normals = original_object.attributes.normal.clone()
+// instanced_geometries.addAttribute('normal', instanced_normals)
 
-var instanced_uvs = original_object.attributes.uv.clone()
-instanced_geometries.addAttribute('uv', instanced_uvs)
+// var instanced_uvs = original_object.attributes.uv.clone()
+// instanced_geometries.addAttribute('uv', instanced_uvs)
 
-instanced_geometries.maxInstanceCount = instances * instances
+// instanced_geometries.maxInstanceCount = instances * instances
 
-var nums = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true, 1)
-var randoms = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true,  1)
-var colors = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 3), 3, true,  1)
+// var nums = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true, 1)
+// var randoms = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 1), 1, true,  1)
+// var colors = new THREE.InstancedBufferAttribute(new Float32Array(instances * instances * 3), 3, true,  1)
 
 
-for(let i = 0; i < nums.count; i++){
-	var _color = fill_colors[Math.floor(Math.random() * fill_colors.length)];
+// for(let i = 0; i < nums.count; i++){
+// 	var _color = fill_colors[Math.floor(Math.random() * fill_colors.length)];
 
-	nums.setX(i, i);
-	randoms.setX(i, Math.random() * 0.5 + 1);
-	colors.setXYZ(i, _color.r, _color.g, _color.b);
-}
+// 	nums.setX(i, i);
+// 	randoms.setX(i, Math.random() * 0.5 + 1);
+// 	colors.setXYZ(i, _color.r, _color.g, _color.b);
+// }
 
-instanced_geometries.addAttribute("aNum", nums);
-instanced_geometries.addAttribute("aRandom", randoms);
-instanced_geometries.addAttribute("aColor", colors);
+// instanced_geometries.addAttribute("aNum", nums);
+// instanced_geometries.addAttribute("aRandom", randoms);
+// instanced_geometries.addAttribute("aColor", colors);
 
 // var scale = {
 // 	x: 2, 
@@ -400,16 +412,13 @@ var reset = null
 var location = 0
 var line_location = 0
 var normalized = false
+var values = null
 
 var animate = function () {
 	stats.begin()
 	objects.rotation.y -= 0.001
 	requestAnimationFrame(animate)
 	raycaster.setFromCamera(mouse, camera)
-
-
-	let values = noise4D(seed, instances, vertices, normalized)
-	
 
 	extend = null
 	reset = null
@@ -424,6 +433,9 @@ var animate = function () {
 					extend =   ((line_vertices[(line_location - 2) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
 								(line_vertices[(line_location - 2) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
 								(line_vertices[(line_location - 2) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2]))
+					if (extend) {
+						values = noise4D(seed, instances, vertices, normalized)
+					}
 				}
 
 				if (extend) {
@@ -460,6 +472,7 @@ var animate = function () {
 					}
 				}
 
+
 				for (let l = line_length - 1; l > 0; l--) {
 					line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
 
@@ -472,19 +485,43 @@ var animate = function () {
 
 				}
 
+				// for (let l = 0; l < line_length - 1; l++) {
+				// 	line_location = (((i * instances + j) * instances + k) * line_length + l) * 6
+
+
+				// 	line_colors[line_location + 0] = line_colors[line_location + 6]
+				// 	line_colors[line_location + 1] = line_colors[line_location + 7]
+				// 	line_colors[line_location + 2] = line_colors[line_location + 8]
+				// 	line_colors[line_location + 3] = line_colors[line_location + 9]
+				// 	line_colors[line_location + 4] = line_colors[line_location + 10]
+				// 	line_colors[line_location + 5] = line_colors[line_location + 11]
+				// }
+
 				line_location = (((i * instances + j) * instances + k) * line_length) * 6
 
-				line_vertices[line_location + 3] = line_vertices[line_location + 0]
-				line_vertices[line_location + 4] = line_vertices[line_location + 1]
 				line_vertices[line_location + 5] = line_vertices[line_location + 2]
-				line_vertices[line_location + 0] = vertices[location + 0]
-				line_vertices[line_location + 1] = vertices[location + 1]
+				line_vertices[line_location + 4] = line_vertices[line_location + 1]
+				line_vertices[line_location + 3] = line_vertices[line_location + 0]
 				line_vertices[line_location + 2] = vertices[location + 2]
+				line_vertices[line_location + 1] = vertices[location + 1]
+				line_vertices[line_location + 0] = vertices[location + 0]
+
+				// line_location = (((i * instances + j) * instances + k) * line_length + line_length - 1) * 6
+
+				// let this_color = Math.random() > 0.995
+				// line_colors[line_location + 0] = this_color ? 1.00 : (normalized ? 0.10 : 0.10)
+				// line_colors[line_location + 1] = this_color ? 1.00 : (normalized ? 0.35 : 0.30)
+				// line_colors[line_location + 2] = this_color ? 1.00 : (normalized ? 0.65 : 0.45)
+				// line_colors[line_location + 3] = (normalized ? 0.10 : 0.10)
+				// line_colors[line_location + 4] = (normalized ? 0.35 : 0.30)
+				// line_colors[line_location + 5] = (normalized ? 0.65 : 0.45)
+
 
 			}
 		}
 	}
 	line_geometry.attributes.position.needsUpdate = true
+	line_geometry.attributes.color.needsUpdate = true
 
 	renderer.render(scene, camera)
 	stats.end()
