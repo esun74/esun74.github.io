@@ -289,7 +289,7 @@ for (let i = 0; i < instances; i++) {
 // objects.add(polygon)
 
 
-var line_length = 256
+var line_length = 350
 var line_geometry = new THREE.BufferGeometry()
 var line_vertices = new Float32Array(instances * instances * instances * line_length * 6)
 var line_colors = new Float32Array(instances * instances * instances * line_length * 6)
@@ -430,9 +430,9 @@ var animate = function () {
 				line_location = ((i * instances + j) * instances + k) * line_length + line_length
 
 				if (extend === null) {
-					extend =   ((line_vertices[(line_location - 2) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
-								(line_vertices[(line_location - 2) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
-								(line_vertices[(line_location - 2) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2]))
+					extend =   ((line_vertices[(line_location - 100) * 6 + 0] === line_vertices[(line_location - 1) * 6 + 0]) & 
+								(line_vertices[(line_location - 100) * 6 + 1] === line_vertices[(line_location - 1) * 6 + 1]) & 
+								(line_vertices[(line_location - 100) * 6 + 2] === line_vertices[(line_location - 1) * 6 + 2]))
 					if (extend) {
 						values = noise4D(seed, instances, vertices, normalized)
 					}
@@ -521,7 +521,7 @@ var animate = function () {
 		}
 	}
 	line_geometry.attributes.position.needsUpdate = true
-	line_geometry.attributes.color.needsUpdate = true
+	// line_geometry.attributes.color.needsUpdate = true
 
 	renderer.render(scene, camera)
 	stats.end()
