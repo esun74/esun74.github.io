@@ -24,67 +24,12 @@
 				display: block;
 			}
 
-			.title {
-				z-index: 1000;
-				font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-				font-size: 64px;
-				color: #FFFFFF;
-				font-variant: small-caps;
-				position: absolute;
-				left: 10%;
-				top: 20%;
-				text-decoration: none;
-			}
-
-			.subtitle {
-				z-index: 1000;
-				font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-				font-size: 32px;
-				color: #FFFFFF;
-				font-variant: small-caps;
-				position: absolute;
-				left: 15%;
-				top: 30%;
-				text-decoration: none;
-			}
-
-			a {
-				z-index: 1000;
-				font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-				font-size: 42px;
-				color: #FFFFFF;
-				font-variant: small-caps;
-				position: absolute;
-				left: 10%;
-				text-decoration: none;
-			}
-
 		</style>
 	</head>
 	<body>
-		<script src="js/three.min.js"></script>
-		<script src="js/stats.min.js"></script>
-		<script src="js/vortex.js"></script>
-		<div class="title">
-			Test Site
-		</div>
-		<div class="subtitle">
-			A site for testing things
-		</div>
-
-		<a href="./index.html" style="top: 61%">
-			Test Site
-		</a>
-		<a href="./clock.html" style="top: 69%">
-			Test
-		</a>
-
-		<a href="./index.html" style="top: 77%">
-			About
-		</a>
-
-		<a href="./map.html" style="top: 85%">
-			Contact
-		</a>
+		<script src="js/three.js/build/three.min.js"></script>
+		<script src="js/three.js/examples/js/libs/stats.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/gpu.js@latest/dist/gpu-browser.min.js"></script>
+		<script type="module" src="js/gpu_test.js"></script>
 	</body>
 </html>

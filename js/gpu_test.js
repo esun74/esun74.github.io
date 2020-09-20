@@ -19,7 +19,8 @@ window.addEventListener('resize', onWindowResize, false)
 // Setting the Scene
 //--------------------------------------------------
 var scene = new THREE.Scene()
-scene.background = new THREE.Color(0x101010)
+// scene.background = new THREE.Color(0x101010)
+scene.background = new THREE.Color(0x050505)
 // scene.background = new THREE.Color(0x222222)
 // scene.background = new THREE.Color(0xFFFCF2)
 //--------------------------------------------------
@@ -60,9 +61,9 @@ scene.add(objects)
 //--------------------------------------------------
 
 // Orbit Controls
-// //--------------------------------------------------
-// import {OrbitControls} from './OrbitControls.js'
-// var controls = new OrbitControls(camera, renderer.domElement)
+//--------------------------------------------------
+import {OrbitControls} from '/js/three.js/examples/jsm/controls/OrbitControls.js'
+var controls = new OrbitControls(camera, renderer.domElement)
 //--------------------------------------------------
 
 
@@ -294,8 +295,8 @@ var line_geometry = new THREE.BufferGeometry()
 var line_vertices = new Float32Array(instances * instances * instances * line_length * 6)
 var line_colors = new Float32Array(instances * instances * instances * line_length * 6)
 var line_colors_start = new Float32Array(instances * instances * instances * 3)
-line_geometry.addAttribute('position', new THREE.BufferAttribute(line_vertices, 3))
-line_geometry.addAttribute('color', new THREE.BufferAttribute(line_colors, 3))
+line_geometry.setAttribute('position', new THREE.BufferAttribute(line_vertices, 3))
+line_geometry.setAttribute('color', new THREE.BufferAttribute(line_colors, 3))
 
 for (let i = 0; i < instances; i++) {
 	for (let j = 0; j < instances; j++) {
@@ -340,13 +341,12 @@ var lineSegments = new THREE.LineSegments(
 	new THREE.LineBasicMaterial({
 		vertexColors: THREE.VertexColors,
 		// color: 0x505050,
-		blending: THREE.AdditiveBlending,
+		// blending: THREE.AdditiveBlending,
 		// blending: THREE.SubtractiveBlending,
 		// blending: THREE.MultiplyBlending,
 }));
 
 objects.add(lineSegments);
-
 
 
 
@@ -402,6 +402,81 @@ objects.add(lineSegments);
 
 //--------------------------------------------------
 
+// var marker_material = new THREE.MeshStandardMaterial({
+// 		color: 0x1E005E,
+// 		emissive: 0x000000,
+// 		roughness: 0.5,
+// 		metalness: 1.5, 
+
+// })
+
+// var geometry = new THREE.Geometry()
+
+// for (let i = -5; i < 5; i++) {
+// 	// for (let j = -5; j < 5; j++) {
+// 		for (let k = -5; k < 5; k++) {
+// 			let box_geometry = new THREE.BoxGeometry(0.5, 2.5, 0.5)
+// 			box_geometry.translate(i * 2, 0 * 2, k * 2)
+// 			geometry.merge(box_geometry)
+// 		}
+// 	// }
+// }
+
+// var polygon = new THREE.Mesh(geometry, marker_material)
+// objects.add(polygon)
+
+
+import {EffectComposer} from '/js/three.js/examples/jsm/postprocessing/EffectComposer.js';
+import {RenderPass} from '/js/three.js/examples/jsm/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from '/js/three.js/examples/jsm/postprocessing/UnrealBloomPass.js';
+import {BokehPass} from '/js/three.js/examples/jsm/postprocessing/BokehPass.js';
+import {ShaderPass} from '/js/three.js/examples/jsm/postprocessing/ShaderPass.js';
+import {FXAAShader} from '/js/three.js/examples/jsm/shaders/FXAAShader.js';
+
+
+var postprocessing = {}
+var renderPass = new RenderPass(scene, camera);
+
+var bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
+bloomPass.threshold = 0;
+bloomPass.strength = 1.5;
+bloomPass.radius = 0;
+
+
+var bokehPass = new BokehPass(scene, camera, {
+	focus: 18.33,
+	aperture: 0.0001,
+	maxblur: 0.5,
+
+	width: window.innerWidth,
+	height: window.innerHeight,
+});
+
+var fxaaPass = new ShaderPass(FXAAShader);
+
+var pixelRatio = renderer.getPixelRatio();
+
+fxaaPass.material.uniforms['resolution'].value.x = 1 / window.innerWidth;
+fxaaPass.material.uniforms['resolution'].value.y = 1 / window.innerHeight;
+
+
+var composer = new EffectComposer(renderer);
+
+composer.addPass(renderPass);
+composer.addPass(fxaaPass)
+// composer.addPass(bokehPass);
+composer.addPass(bloomPass);
+composer.addPass(bokehPass);
+
+postprocessing.composer = composer;
+postprocessing.bloom = bloomPass;
+postprocessing.bokeh = bokehPass;
+
+// scene.add(new THREE.AmbientLight(0x404040));
+// var pointLight = new THREE.PointLight(0xffffff, 1);
+// pointLight.position.set(-10, -5, 15)
+// pointLight.lookAt(0, 0, 0)
+// scene.add(pointLight)
 
 // Operations each frame
 //--------------------------------------------------
@@ -523,7 +598,8 @@ var animate = function () {
 	line_geometry.attributes.position.needsUpdate = true
 	// line_geometry.attributes.color.needsUpdate = true
 
-	renderer.render(scene, camera)
+	// renderer.render(scene, camera)
+	postprocessing.composer.render()
 	stats.end()
 }
 //--------------------------------------------------
