@@ -446,7 +446,7 @@ bloomPass.radius = 0;
 var bokehPass = new BokehPass(scene, camera, {
 	focus: 18.33,
 	aperture: 0.0001,
-	maxblur: 0.5,
+	maxblur: 0.005,
 
 	width: window.innerWidth,
 	height: window.innerHeight,
@@ -463,10 +463,11 @@ fxaaPass.material.uniforms['resolution'].value.y = 1 / window.innerHeight;
 var composer = new EffectComposer(renderer);
 
 composer.addPass(renderPass);
-composer.addPass(fxaaPass)
+
 // composer.addPass(bokehPass);
 composer.addPass(bloomPass);
 composer.addPass(bokehPass);
+// composer.addPass(fxaaPass);
 
 postprocessing.composer = composer;
 postprocessing.bloom = bloomPass;
