@@ -439,14 +439,14 @@ var renderPass = new RenderPass(scene, camera);
 
 var bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0;
-bloomPass.strength = 1.5;
+bloomPass.strength = 1.0;
 bloomPass.radius = 0;
 
 
 var bokehPass = new BokehPass(scene, camera, {
 	focus: 18.33,
 	aperture: 0.0001,
-	maxblur: 0.005,
+	maxblur: 0.5,
 
 	width: window.innerWidth,
 	height: window.innerHeight,
