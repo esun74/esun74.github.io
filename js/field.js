@@ -22,7 +22,7 @@ scene.background = background_color
 
 // Setting the Camera
 //--------------------------------------------------
-var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
+var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.001, 1000)
 camera.position.set(-4, 8, 16)
 // camera.lookAt(0, 4, 8)
 // //--------------------------------------------------
@@ -76,7 +76,6 @@ var controls = new OrbitControls(camera, renderer.domElement)
 
 // GPU Test
 //--------------------------------------------------
-
 const gpu = new GPU({ mode:'webgl' });
 
 gpu.addNativeFunction('snoise', `
@@ -309,7 +308,7 @@ gpu.addNativeFunction('snoise', `
 	}`)
 
 
-var instances = 64
+var instances = 100
 
 const noise4D = gpu.createKernel(function(time, instances, positions, normalized) {
 
@@ -360,12 +359,12 @@ const noise4D = gpu.createKernel(function(time, instances, positions, normalized
 }).setOutput([instances, instances, instances])
 
 const noise3D = gpu.createKernel(function(time, instances, positions) {
-	let offset_x = 100
-	let offset_y = 200
-	let scale = 0.5
+	// let offset_x = 100
+	// let offset_y = 200
+	let scale = 0.05
 
-	let x_position = positions[(this.thread.x * instances + this.thread.y) * 3 + 0] / 10
-	let y_position = positions[(this.thread.x * instances + this.thread.y) * 3 + 2] / 10
+	let x_position = positions[(this.thread.x * instances + this.thread.y) * 3 + 0]
+	let y_position = positions[(this.thread.x * instances + this.thread.y) * 3 + 2]
 
 	return snoise([x_position * scale, y_position * scale, time * scale])
 
@@ -396,7 +395,7 @@ class Grid {
 			uniforms: {
 				color: {value: new THREE.Color(this.color)},
 				background: {value: new THREE.Color(this.background)},
-				focus: {value: 14.0},
+				focus: {value: 15.0},
 			},
 
 			vertexShader: `
@@ -444,23 +443,25 @@ class Grid {
 
 	}
 
-	update() {
-
+	update_data() {
 		this.values = noise3D(this.time, this.count, this.positions)
+	}
 
-		for (var i = 0; i < this.count; i++) {
-			for (var j = 0; j < this.count; j++) {
+	update_visual() {
+
+		for (let i = 0; i < this.count; i++) {
+			for (let j = 0; j < this.count; j++) {
 				this.positions[(i * this.count + j) * 3 + 1] = this.values[j][i] * 5
 			}
 		}
 
-		this.time += 0.005
+		this.time += 0.05
 
 		this.cloud.geometry.attributes.position.needsUpdate = true
 	}
 }
 
-var grid = new Grid(instances, 0x40FFC0, 64)
+var grid = new Grid(instances, 0x40FFC0, 50)
 objects.add(grid.cloud)
 
 //--------------------------------------------------
@@ -471,14 +472,15 @@ var upd = true
 
 var animate = function () {
 	stats.begin()
-
 	requestAnimationFrame(animate)
 	// raycaster.setFromCamera(mouse, camera)
 
 	if (upd) {
-		grid.update()
+		grid.update_data()
+	} else {
+		grid.update_visual()
 	}
-	
+
 	upd = !upd
 
 	renderer.render(scene, camera)
