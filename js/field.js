@@ -395,17 +395,18 @@ class Grid {
 		this.material = new THREE.ShaderMaterial({
 			uniforms: {
 				color: {value: new THREE.Color(this.color)},
-				focus: {value: 12.0},
+				background: {value: new THREE.Color(this.background)},
+				focus: {value: 14.0},
 			},
 
 			vertexShader: `
-				uniform vec3 color;
 				uniform float focus;
 				varying float object_distance;
 
+
 				void main() {
 					object_distance = -(modelViewMatrix * vec4(position, 1.0)).z;
-					gl_PointSize = min(100.0, max(5.0, pow(object_distance - focus, 2.0)));
+					gl_PointSize = min(100.0, max(3.0, pow(object_distance - focus, 2.0)));
 					gl_Position = 	projectionMatrix * 
 									modelViewMatrix * 
 									vec4(position, 1.0);
@@ -414,18 +415,23 @@ class Grid {
 
 			fragmentShader: `
 				uniform vec3 color;
+
 				uniform float focus;
 				varying float object_distance;
 
-				void main() {
-					if(((abs(gl_PointCoord.x - 0.5) > (4.0)) || (abs(gl_PointCoord.y - 0.5) > (sqrt(3.0) / 8.0))) ||
-					 (((abs(gl_PointCoord.x - 0.5) * 4.0) + (4.0 / sqrt(3.0) * abs(gl_PointCoord.y - 0.5))) > 1.0)) {
-					 	discard;
-					} else {
-						gl_FragColor = vec4(color, 5.0 / pow(abs(object_distance - focus), 2.75));
-					}
 
+				void main() {
+					float distance = distance(gl_PointCoord, vec2(0.5, 0.5));
+					if (distance > 0.50) {
+						discard;
+					} else {
+						gl_FragColor = mix(	vec4(color, 5.0 / pow(abs(object_distance - focus), 3.0)), 
+											vec4(color, 0.0), 
+											smoothstep(0.25, 0.50, distance)
+										  );
+					}
 				}
+
 			`,
 
 			transparent: true,
@@ -454,12 +460,12 @@ class Grid {
 	}
 }
 
-var grid = new Grid(instances, 0x40FFC0, 50)
+var grid = new Grid(instances, 0x40FFC0, 64)
 objects.add(grid.cloud)
 
 //--------------------------------------------------
 
-
+var upd = true
 // Operations each frame
 //--------------------------------------------------
 
@@ -469,9 +475,12 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	// raycaster.setFromCamera(mouse, camera)
 
-	grid.update()
+	if (upd) {
+		grid.update()
+	}
+	
+	upd = !upd
 
-	// postprocessing.composer.render()
 	renderer.render(scene, camera)
 	stats.end()
 }
