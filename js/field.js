@@ -23,7 +23,7 @@ scene.background = background_color
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 0.001, 1000)
-camera.position.set(4, 8, 16)
+camera.position.set(-4, 8, 16)
 // camera.lookAt(0, 4, 8)
 // //--------------------------------------------------
 
@@ -55,7 +55,6 @@ function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight
 	camera.updateProjectionMatrix()
 	renderer.setSize(window.innerWidth, window.innerHeight)
-	composer.setSize(window.innerWidth, window.innerHeight)
 }
 window.addEventListener('resize', onWindowResize, false)
 //--------------------------------------------------
@@ -396,7 +395,7 @@ class Grid {
 		this.material = new THREE.ShaderMaterial({
 			uniforms: {
 				color: {value: new THREE.Color(this.color)},
-				focus: {value: 15.0},
+				focus: {value: 12.0},
 			},
 
 			vertexShader: `
