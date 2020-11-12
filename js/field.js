@@ -641,20 +641,23 @@ class Grid {
 
 				void main() {
 					vertex_color = color;
-					object_distance = abs(-(modelViewMatrix * vec4(position, 1.0)).z - focus);
+
+					vec4 vertex_position = vec4(
+												position.x, 
+												snoise(vec3(
+													position.x * scale, 
+													position.z * scale, 
+													time * scale
+												)) * height, 
+												position.z, 
+												1.0
+											);
+
+					object_distance = abs(-(modelViewMatrix * vertex_position).z - focus);
 					gl_PointSize = min(100.0, max(3.0, pow(object_distance, 2.0)));
 					gl_Position = 	projectionMatrix * 
 									modelViewMatrix * 
-									vec4(
-										position.x, 
-										snoise(
-											vec3(
-												position.x * scale, 
-												position.z * scale, 
-												time * scale
-											)
-										) * height, 
-										position.z, 1.0);
+									vertex_position;
 				}
 			`,
 
@@ -689,7 +692,7 @@ class Grid {
 	}
 
 	update() {
-		this.material.uniforms.time.value += 0.05
+		this.material.uniforms.time.value += 0.025
 	}
 
 	// update_visual() {
