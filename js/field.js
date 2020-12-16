@@ -30,7 +30,7 @@ item_list.forEach(e => retrieve(items, e))
 var stats = new Stats()
 stats.showPanel(1) // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild(stats.dom)
-// document.body.addEventListener('click', () => {window.location.reload()}, true)
+document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
 
 // Setting the Scene
@@ -44,8 +44,8 @@ scene.background = new THREE.Color(0xFFFEFD)
 // Setting the Camera
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.001, 1000)
-camera.position.set(-4, 8, 16)
-camera.lookAt(0, 4, 0)
+camera.position.set(0, 24, 16)
+// camera.lookAt(0, 4, 0)
 // //--------------------------------------------------
 
 // Mouse Position
@@ -60,9 +60,9 @@ function onMouseMove(event) {
 
 window.addEventListener('mousemove', onMouseMove, false)
 
-var vertical_target = 8
+var vertical_target = 4
 function onMouseWheel(event) {
-	vertical_target = Math.max(-8, Math.min(8, vertical_target - event.deltaY / 20))
+	vertical_target = Math.max(-16, Math.min(4, vertical_target - event.deltaY / 15))
 }
 window.addEventListener('wheel', onMouseWheel, false);
 //--------------------------------------------------
@@ -246,83 +246,115 @@ class Grid {
 
 // Text
 //--------------------------------------------------
-function write_text(message, width, text_size)
-{
 
-	function twoify(value) {
-		let pow = 32
-		while (pow < value) { pow *= 2 }
-		return pow;
+class Scaling_Textbox {
+	constructor(
+		message, 
+		location, 
+		fontSize = 32,
+		fontFace = 'monospace', 
+		textBaseline = 'middle',
+		fillStyle = '#000000',
+		textAlign = 'left',
+	) {
+		this.message = message
+		this.location = location
+		this.fontSize = fontSize
+		this.fontFace = fontFace
+		this.textBaseline = textBaseline
+		this.filleStyle = fillStyle
+		this.textAlign = textAlign
+		this.canvas = document.createElement('canvas')
+		this.context = this.canvas.getContext('2d')
+		this.lines = ['  ']
+		this.sprite = new THREE.Sprite()
+
+		this.update()
+		window.addEventListener('resize', () => {this.update()}, false)
 	}
-	let canvas = document.createElement('canvas');
-	let context = canvas.getContext('2d');
 
-	let lines = ['  ']
-	message.split(' ').forEach(e => {
-		if (lines[lines.length - 1].length > width) {
-			lines.push(e)
-		} else {
-			lines[lines.length - 1] += ' ' + e
+	set_context() {
+		this.context.font = this.fontSize + 'px ' + this.fontFace
+		this.context.textBaseline = this.textBaseline
+		this.context.fillStyle = this.fillStyle
+		this.context.textAlign = this.textAlign
+	}
+
+	update() {
+
+		this.canvas.width = window.innerWidth * 1.75
+
+		this.reflow()
+
+		this.canvas.height = this.lines.length * this.fontSize * 2
+
+		this.set_context()
+
+		let starting_x = this.textAlign == 'center' ? this.canvas.width / 2 : 0
+
+		for (let i = 0; i < this.lines.length; i++) {
+			this.context.fillText(this.lines[i], starting_x, (i + 0.5) * this.canvas.height / this.lines.length)
 		}
-	})
 
-	context.font = text_size + 'px monospace'
-	lines.forEach(e => {
-		canvas.width = Math.max(twoify(context.measureText(e).width), canvas.width)
-		console.log(e, context.measureText(e).width, twoify(context.measureText(e).width))
-	})
-	canvas.height = twoify(2 * text_size * lines.length)
+		let texture = new THREE.Texture(this.canvas)
+		texture.needsUpdate = true;
 
-	// console.log(lines)
-	console.log(canvas.width, canvas.height)
-
-	context.font = text_size + 'px monospace'
-	context.textBaseline = 'middle'
-	context.fillStyle = '#000000'
-	context.textAlign = 'center'
-
-	for (let i = 0; i < lines.length; i++) {
-		context.fillText(lines[i], canvas.width / 2, (i + 0.5) * canvas.height / lines.length)
+		let spriteMaterial = new THREE.SpriteMaterial({map: texture});
+		this.sprite.material = spriteMaterial
+		this.sprite.scale.set(0.01 * this.canvas.width, 0.01 * this.canvas.height);  
+		this.sprite.position.set(this.location[0], this.location[1], this.location[2])
 	}
 
-	// context.fillText(message, canvas.width / 2, canvas.height / 2)
-
-	// var fontface = "Lucida";
-	// var fontsize = 54;
-	// var borderThickness =  4;
-
-
-	// context.font = "Bold " + fontsize + "px " + fontface;
-	// var metrics = context.measureText(message);
-	// var textWidth = metrics.width;
-
-	// context.fillStyle = "rgba(255, 255, 255, 0.9)";
-	// context.fillText( message, borderThickness, fontsize + borderThickness);
-
-	var texture = new THREE.Texture(canvas)
-	texture.needsUpdate = true;
-
-	var spriteMaterial = new THREE.SpriteMaterial({map: texture, transparent: true});
-	var sprite = new THREE.Sprite(spriteMaterial);
-	sprite.scale.set(0.01 * canvas.width, 0.01 * canvas.height);
-	return sprite;  
+	reflow() {
+		this.lines = ['  ']
+		this.set_context()
+		this.message.split(' ').forEach(e => {
+			if (this.context.measureText(this.lines[this.lines.length - 1] + ' ' + e).width > this.canvas.width && this.lines != ['   ']) {
+				this.lines.push(e)
+			} else {
+				this.lines[this.lines.length - 1] += ' ' + e
+			}
+		})
+		if (this.lines.length == 1) {
+			this.lines[0] = this.lines[0].trim()
+		}
+	}
 }
 
-var t = write_text(
-	'Lorem ipsum',
-	128, 
-	64,
-)
-t.position.set(-5, 5, 0)
-objects.add(t) 
 
-var s = write_text(
-	'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+var title1 = new Scaling_Textbox(
+	'Lorem Ipsum',
+	[0, 8, 0],
 	128,
-	48, 
-)
-s.position.set(0, -14, 0)
-objects.add(s) 
+	'georgia',
+	'middle',
+	'#000000',
+	'center',)
+objects.add(title1.sprite)
+
+var subtitle1 = new Scaling_Textbox(
+	'Dolor Sit Amet',
+	[0, 6.5, 0],
+	64,
+	'georgia',
+	'middle',
+	'#000000',
+	'center',)
+objects.add(subtitle1.sprite)
+
+var paragraph1 = new Scaling_Textbox(
+'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 
+ 	[0, -16, 0],
+ 	32,
+	'georgia',
+	'middle',
+	'#000000',
+	'left',)
+objects.add(paragraph1.sprite)
+
 
 //--------------------------------------------------
 
@@ -337,7 +369,6 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	// raycaster.setFromCamera(mouse, camera)
 
-	camera.position.y += (vertical_target - camera.position.y) / 10
 
 	if (stage == 0) {
 		if ((retrieving[0] / retrieving[1]) == 1) {
@@ -346,6 +377,7 @@ var animate = function () {
 			stage++
 		}
 	} else if (stage == 1) {
+		camera.position.y += (vertical_target - camera.position.y) / 10
 		grid.update()
 	}
 
