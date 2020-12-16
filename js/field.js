@@ -21,6 +21,8 @@ var items = {}
 var item_list = [
 	'js/glsl/field.vert',
 	'js/glsl/field.frag',
+	'js/glsl/contour.vert',
+	'js/glsl/contour.frag',
 ]
 item_list.forEach(e => retrieve(items, e))
 
@@ -30,7 +32,7 @@ item_list.forEach(e => retrieve(items, e))
 var stats = new Stats()
 stats.showPanel(1) // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild(stats.dom)
-document.body.addEventListener('click', () => {window.location.reload()}, true)
+// document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
 
 // Setting the Scene
@@ -62,7 +64,7 @@ window.addEventListener('mousemove', onMouseMove, false)
 
 var vertical_target = 4
 function onMouseWheel(event) {
-	vertical_target = Math.max(-16, Math.min(4, vertical_target - event.deltaY / 15))
+	vertical_target = Math.max(-20, Math.min(4, vertical_target - event.deltaY / 15))
 }
 window.addEventListener('wheel', onMouseWheel, false);
 //--------------------------------------------------
@@ -240,6 +242,71 @@ class Grid {
 }
 
 
+class Contour {
+	constructor(count, space) {
+		this.count = count
+		this.space = space
+		this.positions = new Float32Array(this.count * this.count * 18)
+		this.colors = new Float32Array(this.count * this.count * 18)
+
+		for (let i = 0; i < this.count; i++) {
+			for (let j = 0; j < this.count; j++) {
+				this.positions[(i * this.count + j) * 18 + 0] = ((i + 0.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 2] = ((j + 0.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 3] = ((i + 1.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 5] = ((j + 1.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 6] = ((i + 1.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 8] = ((j + 0.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 9] = ((i + 0.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 11] = ((j + 0.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 12] = ((i + 0.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 14] = ((j + 1.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 15] = ((i + 1.5) / this.count - 0.5) * space
+				this.positions[(i * this.count + j) * 18 + 17] = ((j + 1.5) / this.count - 0.5) * space
+			}
+		}
+
+		for (let i = 0; i < this.count; i++) {
+			for (let j = 0; j < this.count; j++) {
+				for (let k = 0; k < 6; k++) {
+					this.colors[(i * this.count + j) * 18 + (k * 3) + 0] = 0.250
+					this.colors[(i * this.count + j) * 18 + (k * 3) + 1] = 1.000
+					this.colors[(i * this.count + j) * 18 + (k * 3) + 2] = 0.750
+				}
+			}
+		}
+
+
+		this.material = new THREE.ShaderMaterial({
+			uniforms: {
+				focus: {value: 17.5},
+				time: {value: Math.random() * 100},
+				scale: {value: 0.05},
+				height: {value: 5.0},
+				location: {value: 8.0},
+			},
+			side: THREE.DoubleSide,
+
+			vertexShader: items['js/glsl/contour.vert'],
+			fragmentShader: items['js/glsl/contour.frag'],
+
+			transparent: true,
+			depthWrite: false,
+		})
+
+		this.particles = new THREE.BufferGeometry()
+		this.particles.setAttribute('position', new THREE.BufferAttribute(this.positions, 3).setUsage(35048))
+		this.particles.setAttribute('color', new THREE.BufferAttribute(this.colors, 3).setUsage(35048))
+		this.mesh = new THREE.Mesh(this.particles, this.material)
+
+	}
+
+	update() {
+		this.material.uniforms.time.value += 0.025
+		// this.cloud.geometry.attributes.position.needsUpdate = true
+		// this.cloud.geometry.attributes.color.needsUpdate = true
+	}
+}
 
 //--------------------------------------------------
 
@@ -360,6 +427,7 @@ objects.add(paragraph1.sprite)
 
 var stage = 0
 var grid = null
+var contour = null
 
 // Operations each frame
 //--------------------------------------------------
@@ -369,16 +437,36 @@ var animate = function () {
 	requestAnimationFrame(animate)
 	// raycaster.setFromCamera(mouse, camera)
 
-
 	if (stage == 0) {
 		if ((retrieving[0] / retrieving[1]) == 1) {
 			grid = new Grid(instances, 50)
 			objects.add(grid.cloud)
+
+			contour = new Contour(instances, 50)
+			contour.mesh.position.set(0, -28, 0)
+			objects.add(contour.mesh)
 			stage++
 		}
-	} else if (stage == 1) {
+	} else {
+
+		let cutoff1 = -24
+		let delta1 = (vertical_target - camera.position.y) / 10
+
+		// if (camera.position.y > cutoff1 && (camera.position.y + delta1) < cutoff1) {
+		// 	grid.cloud.material = new THREE.PointsMaterial({
+		// 		color: '#000000',
+		// 		size: 0.05,
+		// 	})
+		// } else if (camera.position.y < cutoff1 && (camera.position.y + delta1) > cutoff1) {
+		// 	grid.cloud.material = grid.material
+		// }
+
 		camera.position.y += (vertical_target - camera.position.y) / 10
-		grid.update()
+
+		// if (camera.position.y > cutoff1) {
+			grid.update()
+			contour.update()
+		// }
 	}
 
 
