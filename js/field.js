@@ -1,38 +1,25 @@
-var retrieving = [0, 0]
+import Grid from '/js/classes/Grid.js'
+import Contour from '/js/classes/Contour.js'
+import Retriever from '/js/classes/Retriever.js'
+import Custom_Textbox from '/js/classes/Custom_Textbox.js'
+import Something from '/js/classes/Experiment.js'
 
-function retrieve(target, path) {
-	let req = new XMLHttpRequest()
 
-	req.onreadystatechange = function() {
-		if (req.readyState === 4) {
-			console.log('Received ' + path)
-			target[path] = req.response
-			retrieving[0]++
-		}
-	};
-
-	console.log('Requested ' + path)
-	req.open('GET', path, true)
-	req.send()
-	retrieving[1]++
-}
-
-var items = {}
-var item_list = [
-	'js/glsl/field.vert',
-	'js/glsl/field.frag',
-	'js/glsl/contour.vert',
-	'js/glsl/contour.frag',
-]
-item_list.forEach(e => retrieve(items, e))
-
+var files = new Retriever([
+	'glsl/field.vert',
+	'glsl/field.frag',
+	'glsl/contour.vert',
+	'glsl/contour.frag',
+	'glsl/experiment.vert',
+	'glsl/experiment.frag',
+])
 
 // Performance Statistics
 //--------------------------------------------------
 var stats = new Stats()
 stats.showPanel(1) // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild(stats.dom)
-// document.body.addEventListener('click', () => {window.location.reload()}, true)
+document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
 
 // Setting the Scene
@@ -175,221 +162,10 @@ var instances = 100
 //--------------------------------------------------
 
 
-
-class Grid {
-	constructor(count, space) {
-		this.count = count
-		this.space = space
-		this.positions = new Float32Array(this.count * this.count * 3)
-		this.colors = new Float32Array(this.count * this.count * 3)
-
-		for (let i = 0; i < this.count; i++) {
-			for (let j = 0; j < this.count; j++) {
-				this.positions[(i * this.count + j) * 3 + 0] = ((i + 0.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 3 + 1] = 0
-				this.positions[(i * this.count + j) * 3 + 2] = ((j + 0.5) / this.count - 0.5) * space
-			}
-		}
-
-		for (let i = 0; i < this.count; i++) {
-			for (let j = 0; j < this.count; j++) {
-
-				// if ((i + j) % 2 == 0) {
-					this.colors[(i * this.count + j) * 3 + 0] = 0.250
-					this.colors[(i * this.count + j) * 3 + 1] = 1.000
-					this.colors[(i * this.count + j) * 3 + 2] = 0.750
-				// } else if (j % 2 == 0) {
-					// this.colors[(i * this.count + j) * 3 + 0] = 1.000
-					// this.colors[(i * this.count + j) * 3 + 1] = 0.375
-					// this.colors[(i * this.count + j) * 3 + 2] = 0.250
-				// } else {
-					// this.colors[(i * this.count + j) * 3 + 0] = 0.250
-					// this.colors[(i * this.count + j) * 3 + 1] = 0.500
-					// this.colors[(i * this.count + j) * 3 + 2] = 1.000
-				// }
-			}
-		}
-
-
-		this.material = new THREE.ShaderMaterial({
-			uniforms: {
-				focus: {value: 17.5},
-				time: {value: Math.random() * 100},
-				scale: {value: 0.05},
-				height: {value: 5.0},
-				location: {value: 8.0},
-			},
-
-			vertexShader: items['js/glsl/field.vert'],
-			fragmentShader: items['js/glsl/field.frag'],
-
-			transparent: true,
-			depthWrite: false,
-		})
-
-		this.particles = new THREE.BufferGeometry()
-		this.particles.setAttribute('position', new THREE.BufferAttribute(this.positions, 3).setUsage(35048))
-		this.particles.setAttribute('color', new THREE.BufferAttribute(this.colors, 3).setUsage(35048))
-		this.cloud = new THREE.Points(this.particles, this.material)
-
-	}
-
-	update() {
-		this.material.uniforms.time.value += 0.025
-		// this.cloud.geometry.attributes.position.needsUpdate = true
-		// this.cloud.geometry.attributes.color.needsUpdate = true
-	}
-}
-
-
-class Contour {
-	constructor(count, space) {
-		this.count = count
-		this.space = space
-		this.positions = new Float32Array(this.count * this.count * 18)
-		this.colors = new Float32Array(this.count * this.count * 18)
-
-		for (let i = 0; i < this.count; i++) {
-			for (let j = 0; j < this.count; j++) {
-				this.positions[(i * this.count + j) * 18 + 0] = ((i + 0.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 2] = ((j + 0.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 3] = ((i + 1.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 5] = ((j + 1.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 6] = ((i + 1.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 8] = ((j + 0.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 9] = ((i + 0.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 11] = ((j + 0.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 12] = ((i + 0.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 14] = ((j + 1.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 15] = ((i + 1.5) / this.count - 0.5) * space
-				this.positions[(i * this.count + j) * 18 + 17] = ((j + 1.5) / this.count - 0.5) * space
-			}
-		}
-
-		for (let i = 0; i < this.count; i++) {
-			for (let j = 0; j < this.count; j++) {
-				for (let k = 0; k < 6; k++) {
-					this.colors[(i * this.count + j) * 18 + (k * 3) + 0] = 0.250
-					this.colors[(i * this.count + j) * 18 + (k * 3) + 1] = 1.000
-					this.colors[(i * this.count + j) * 18 + (k * 3) + 2] = 0.750
-				}
-			}
-		}
-
-
-		this.material = new THREE.ShaderMaterial({
-			uniforms: {
-				focus: {value: 17.5},
-				time: {value: Math.random() * 100},
-				scale: {value: 0.05},
-				height: {value: 5.0},
-				location: {value: 8.0},
-			},
-			side: THREE.DoubleSide,
-
-			vertexShader: items['js/glsl/contour.vert'],
-			fragmentShader: items['js/glsl/contour.frag'],
-
-			transparent: true,
-			depthWrite: false,
-		})
-
-		this.particles = new THREE.BufferGeometry()
-		this.particles.setAttribute('position', new THREE.BufferAttribute(this.positions, 3).setUsage(35048))
-		this.particles.setAttribute('color', new THREE.BufferAttribute(this.colors, 3).setUsage(35048))
-		this.mesh = new THREE.Mesh(this.particles, this.material)
-
-	}
-
-	update() {
-		this.material.uniforms.time.value += 0.025
-		// this.cloud.geometry.attributes.position.needsUpdate = true
-		// this.cloud.geometry.attributes.color.needsUpdate = true
-	}
-}
-
 //--------------------------------------------------
 
 
-// Text
-//--------------------------------------------------
-
-class Scaling_Textbox {
-	constructor(
-		message, 
-		location, 
-		fontSize = 32,
-		fontFace = 'monospace', 
-		textBaseline = 'middle',
-		fillStyle = '#000000',
-		textAlign = 'left',
-	) {
-		this.message = message
-		this.location = location
-		this.fontSize = fontSize
-		this.fontFace = fontFace
-		this.textBaseline = textBaseline
-		this.filleStyle = fillStyle
-		this.textAlign = textAlign
-		this.canvas = document.createElement('canvas')
-		this.context = this.canvas.getContext('2d')
-		this.lines = ['  ']
-		this.sprite = new THREE.Sprite()
-
-		this.update()
-		window.addEventListener('resize', () => {this.update()}, false)
-	}
-
-	set_context() {
-		this.context.font = this.fontSize + 'px ' + this.fontFace
-		this.context.textBaseline = this.textBaseline
-		this.context.fillStyle = this.fillStyle
-		this.context.textAlign = this.textAlign
-	}
-
-	update() {
-
-		this.canvas.width = window.innerWidth * 1.75
-
-		this.reflow()
-
-		this.canvas.height = this.lines.length * this.fontSize * 2
-
-		this.set_context()
-
-		let starting_x = this.textAlign == 'center' ? this.canvas.width / 2 : 0
-
-		for (let i = 0; i < this.lines.length; i++) {
-			this.context.fillText(this.lines[i], starting_x, (i + 0.5) * this.canvas.height / this.lines.length)
-		}
-
-		let texture = new THREE.Texture(this.canvas)
-		texture.needsUpdate = true;
-
-		let spriteMaterial = new THREE.SpriteMaterial({map: texture});
-		this.sprite.material = spriteMaterial
-		this.sprite.scale.set(0.01 * this.canvas.width, 0.01 * this.canvas.height);  
-		this.sprite.position.set(this.location[0], this.location[1], this.location[2])
-	}
-
-	reflow() {
-		this.lines = ['  ']
-		this.set_context()
-		this.message.split(' ').forEach(e => {
-			if (this.context.measureText(this.lines[this.lines.length - 1] + ' ' + e).width > this.canvas.width && this.lines != ['   ']) {
-				this.lines.push(e)
-			} else {
-				this.lines[this.lines.length - 1] += ' ' + e
-			}
-		})
-		if (this.lines.length == 1) {
-			this.lines[0] = this.lines[0].trim()
-		}
-	}
-}
-
-
-var title1 = new Scaling_Textbox(
+var title1 = new Custom_Textbox(
 	'Lorem Ipsum',
 	[0, 8, 0],
 	128,
@@ -399,7 +175,7 @@ var title1 = new Scaling_Textbox(
 	'center',)
 objects.add(title1.sprite)
 
-var subtitle1 = new Scaling_Textbox(
+var subtitle1 = new Custom_Textbox(
 	'Dolor Sit Amet',
 	[0, 6.5, 0],
 	64,
@@ -409,7 +185,7 @@ var subtitle1 = new Scaling_Textbox(
 	'center',)
 objects.add(subtitle1.sprite)
 
-var paragraph1 = new Scaling_Textbox(
+var paragraph1 = new Custom_Textbox(
 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
@@ -428,6 +204,7 @@ objects.add(paragraph1.sprite)
 var stage = 0
 var grid = null
 var contour = null
+var something = null
 
 // Operations each frame
 //--------------------------------------------------
@@ -438,14 +215,22 @@ var animate = function () {
 	// raycaster.setFromCamera(mouse, camera)
 
 	if (stage == 0) {
-		if ((retrieving[0] / retrieving[1]) == 1) {
-			grid = new Grid(instances, 50)
+		if ((files.retrieving[0] / files.retrieving[1]) == 1) {
+
+			// something = new Something(instances, 50, files.items)
+			// something.mesh.position.set(0, -2, 0)
+			// objects.add(something.mesh)
+
+			grid = new Grid(instances, 50, files.items)
+			grid.cloud.position.set(0, -2, -18)
 			objects.add(grid.cloud)
 
-			contour = new Contour(instances, 50)
-			contour.mesh.position.set(0, -28, 0)
+			contour = new Contour(instances * 2, 50, files.items)
+			contour.mesh.position.set(0, -28, -18)
 			objects.add(contour.mesh)
+
 			stage++
+
 		}
 	} else {
 
@@ -464,6 +249,7 @@ var animate = function () {
 		camera.position.y += (vertical_target - camera.position.y) / 10
 
 		// if (camera.position.y > cutoff1) {
+			// something.update()
 			grid.update()
 			contour.update()
 		// }

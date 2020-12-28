@@ -1,5 +1,3 @@
-attribute vec3 color;
-
 uniform float focus;
 uniform float scale;
 uniform float time;
@@ -237,7 +235,7 @@ float snoise(vec2 v) {
 }
 
 void main() {
-	vertex_color = color;
+	vertex_color = vec3(0.25, 1.0, 0.75);
 
 	vertex_position = vec4(
 								position.x, 
