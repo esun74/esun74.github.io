@@ -6,7 +6,7 @@ class Something {
 		this.material = new THREE.ShaderMaterial({
 			uniforms: {
 				focus: {value: 17.5},
-				time: {value: Math.random() * 100 * 0},
+				time: {value: Math.random() * 100},
 				scale: {value: 0.05},
 				height: {value: 5.0},
 				location: {value: 8.0},
@@ -18,13 +18,11 @@ class Something {
 			vertexShader: items['glsl/experiment.vert'],
 			fragmentShader: items['glsl/experiment.frag'],
 
-			transparent: true,
-			depthWrite: false,
+			// transparent: true,
+			// depthWrite: false,
 		})
 
-		this.geometry = new THREE.PlaneBufferGeometry(this.space, this.space, this.count, this.count)
-		this.geometry.rotateX(Math.PI / 2)
-		this.geometry.rotateZ(Math.PI)
+		this.geometry = new THREE.IcosahedronBufferGeometry(this.space, this.count)
 		this.mesh = new THREE.Mesh(this.geometry, this.material)
 		this.mesh.position.set(0, 0, -12)
 

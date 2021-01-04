@@ -234,19 +234,65 @@ float snoise(vec2 v) {
 	return 130.0 * dot(m, g);
 }
 
-void main() {
-	vertex_color = vec3(0.25, 1.0, 0.75);
+vec3 curlify(vec3 position, float time) {
 
-	vertex_position = vec4(
-								position.x, 
-								snoise(vec3(
-									position.x * scale, 
-									position.z * scale, 
-									time * scale
-								)) * height, 
-								position.z, 
-								1.0
-							);
+	float offset_x = 100.0;
+	float offset_y = 200.0;
+	float offset_z = 300.0;
+	float fda = 0.01; // finite difference amount
+	time = time * scale;
+	position = position * scale;
+
+	float d_x0_y = snoise(vec4(position.x - fda, position.y, position.z, time + offset_y));
+	float d_x0_z = snoise(vec4(position.x - fda, position.y, position.z, time + offset_z));
+	float d_x1_y = snoise(vec4(position.x + fda, position.y, position.z, time + offset_y));
+	float d_x1_z = snoise(vec4(position.x + fda, position.y, position.z, time + offset_z));
+	
+	float d_y0_x = snoise(vec4(position.x, position.y - fda, position.z, time + offset_x));
+	float d_y0_z = snoise(vec4(position.x, position.y - fda, position.z, time + offset_z));
+	float d_y1_x = snoise(vec4(position.x, position.y + fda, position.z, time + offset_x));
+	float d_y1_z = snoise(vec4(position.x, position.y + fda, position.z, time + offset_z));
+
+	float d_z0_x = snoise(vec4(position.x, position.y, position.z - fda, time + offset_x));
+	float d_z0_y = snoise(vec4(position.x, position.y, position.z - fda, time + offset_y));
+	float d_z1_x = snoise(vec4(position.x, position.y, position.z + fda, time + offset_x));
+	float d_z1_y = snoise(vec4(position.x, position.y, position.z + fda, time + offset_y));
+
+	float curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * fda);
+	float curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * fda);
+	float curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * fda);
+
+	float curl_magnitude = sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z));
+
+	curl_x /= curl_magnitude;
+	curl_y /= curl_magnitude;
+	curl_z /= curl_magnitude;
+
+	// if (true) {
+	// 	curl_x = round(curl_x);
+	// 	curl_y = round(curl_y);
+	// 	curl_z = round(curl_z);
+	// }
+
+	return position / scale + vec3(curl_x, curl_y, curl_z);
+}
+
+void main() {
+	// vertex_color = vec3(0.25, 1.0, 0.75);
+	vertex_color = vec3(0.0, 0.0, 0.0);
+
+	// vertex_position = vec4(
+	// 							position.x, 
+	// 							position.y + (snoise(vec3(
+	// 								position.x * scale, 
+	// 								position.z * scale, 
+	// 								time * scale
+	// 							)) * height), 
+	// 							position.z, 
+	// 							1.0
+	// 						);
+	vertex_position = vec4(curlify(position, time), 1.0);
+	// vertex_position = vec4(position, 1.0);
 
 	object_distance = abs(-(modelViewMatrix * vertex_position).z - focus);
 	gl_Position = projectionMatrix * modelViewMatrix * vertex_position;
