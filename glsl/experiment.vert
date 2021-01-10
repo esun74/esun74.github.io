@@ -264,34 +264,28 @@ vec3 curlify(vec3 position, float time) {
 
 	float curl_magnitude = sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z));
 
-	curl_x /= curl_magnitude;
-	curl_y /= curl_magnitude;
-	curl_z /= curl_magnitude;
+	// curl_x = round(curl_x);
+	// curl_y = round(curl_y);
+	// curl_z = round(curl_z);
 
-	// if (true) {
-	// 	curl_x = round(curl_x);
-	// 	curl_y = round(curl_y);
-	// 	curl_z = round(curl_z);
-	// }
-
-	return position / scale + vec3(curl_x, curl_y, curl_z);
+	return position / scale + vec3(curl_x, curl_y, curl_z) / curl_magnitude;
 }
 
 void main() {
-	// vertex_color = vec3(0.25, 1.0, 0.75);
-	vertex_color = vec3(0.0, 0.0, 0.0);
+	vertex_color = vec3(0.25, 1.0, 0.75);
+	// vertex_color = vec3(0.0, 0.0, 0.0);
 
-	// vertex_position = vec4(
-	// 							position.x, 
-	// 							position.y + (snoise(vec3(
-	// 								position.x * scale, 
-	// 								position.z * scale, 
-	// 								time * scale
-	// 							)) * height), 
-	// 							position.z, 
-	// 							1.0
-	// 						);
-	vertex_position = vec4(curlify(position, time), 1.0);
+	vertex_position = vec4(
+								position.x, 
+								position.y + (max(0.25, float(snoise(vec3(
+									round(position.x / 5.0) * 5.0 * scale, 
+									round(position.z / 5.0) * 5.0 * scale, 
+									time * scale
+								)))) - 0.25) * height, 
+								position.z, 
+								1.0
+							);
+	// vertex_position = vec4(curlify(position, time), 1.0);
 	// vertex_position = vec4(position, 1.0);
 
 	object_distance = abs(-(modelViewMatrix * vertex_position).z - focus);

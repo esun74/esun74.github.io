@@ -34,7 +34,7 @@ scene.background = new THREE.Color(0xFFFEFD)
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.001, 1000)
 // camera.position.set(0, 24, 16)
-camera.position.set(0, 8, 16)
+camera.position.set(12, 16, 16)
 camera.lookAt(0, 0, 0)
 // //--------------------------------------------------
 
@@ -133,6 +133,7 @@ var stage = 0
 var grid = null
 var contour = null
 var something = null
+var instances = 32
 
 // Operations each frame
 //--------------------------------------------------
@@ -145,7 +146,7 @@ var animate = function () {
 	if (stage == 0) {
 		if ((files.retrieving[0] / files.retrieving[1]) == 1) {
 
-			something = new Something(10, 5, files.items)
+			something = new Something(instances, 50, files.items)
 			something.mesh.position.set(0, 0, 0)
 			objects.add(something.mesh)
 
