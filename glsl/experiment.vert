@@ -1,12 +1,12 @@
 uniform float focus;
 uniform float scale;
 uniform float time;
-uniform float height;
-uniform float location;
+uniform float space;
 
 varying float object_distance;
 varying vec3 vertex_color;
 varying vec4 vertex_position;
+varying vec3 original_position;
 
 // Description : Array and textureless GLSL 2D/3D/4D simplex 
 //               noise functions.
@@ -239,9 +239,11 @@ vec3 curlify(vec3 position, float time) {
 	float offset_x = 100.0;
 	float offset_y = 200.0;
 	float offset_z = 300.0;
-	float fda = 0.01; // finite difference amount
+	float fda = 0.1;
+
 	time = time * scale;
-	position = position * scale;
+	position.x = position.x * pow(scale, 6.4);
+	position.y = position.y * pow(scale, 6.4);
 
 	float d_x0_y = snoise(vec4(position.x - fda, position.y, position.z, time + offset_y));
 	float d_x0_z = snoise(vec4(position.x - fda, position.y, position.z, time + offset_z));
@@ -262,32 +264,20 @@ vec3 curlify(vec3 position, float time) {
 	float curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * fda);
 	float curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * fda);
 
-	float curl_magnitude = sqrt((curl_x * curl_x) + (curl_y * curl_y) + (curl_z * curl_z));
+	curl_x = curl_x * scale;
+	curl_y = curl_y * scale;
 
-	// curl_x = round(curl_x);
-	// curl_y = round(curl_y);
-	// curl_z = round(curl_z);
-
-	return position / scale + vec3(curl_x, curl_y, curl_z) / curl_magnitude;
+	return vec3(curl_x, curl_y, curl_z) * min(1.0, distance(position, vec3(0.0, 0.0, space / 2.0))) * min(1.0, distance(position, vec3(0.0, 0.0, -space / 2.0)));
 }
 
-void main() {
-	vertex_color = vec3(0.25, 1.0, 0.75);
-	// vertex_color = vec3(0.0, 0.0, 0.0);
 
-	vertex_position = vec4(
-								position.x, 
-								position.y + (max(0.25, float(snoise(vec3(
-									round(position.x / 5.0) * 5.0 * scale, 
-									round(position.z / 5.0) * 5.0 * scale, 
-									time * scale
-								)))) - 0.25) * height, 
-								position.z, 
-								1.0
-							);
-	// vertex_position = vec4(curlify(position, time), 1.0);
-	// vertex_position = vec4(position, 1.0);
+void main() {
+
+	vertex_color = vec3(0.0 / 255.0, 15.0 / 255.0, 60.0 / 255.0);
+	original_position = position;
+	vertex_position = vec4(position, 1.0);
 
 	object_distance = abs(-(modelViewMatrix * vertex_position).z - focus);
 	gl_Position = projectionMatrix * modelViewMatrix * vertex_position;
+
 }

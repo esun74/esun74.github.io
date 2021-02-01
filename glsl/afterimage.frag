@@ -43,6 +43,7 @@ vec4 grad4(float j, vec4 ip) {
 // (sqrt(5) - 1)/4 = F4, used once below
 #define F4 0.309016994374947451
 
+
 float snoise(vec4 v) {
 	const vec4  C = vec4( 	+0.138196601125011,  // (5 - sqrt(5))/20  G4
 							+0.276393202250021,  // 2 * G4
@@ -232,43 +233,29 @@ float snoise(vec2 v) {
 
 void main() {
 
-	float grid_size = 0.5;
-	float grid_width = 1.2;
+	// float f = abs(fract(vertex_position.y * grid_size) - 0.5);
+	// float df = fwidth(vertex_position.y * grid_size);
+	// float mi = max(0.0, grid_width - 1.0), ma = max(1.0, grid_width);
+	// float g = 1.0 - clamp((f - df * mi) / (df * (ma - mi)), max(0.0, 1.0 - grid_width), 1.0);
 
-	float f = abs(fract(vertex_position.y * grid_size) - 0.5);
-	float df = fwidth(vertex_position.y * grid_size);
-	float mi = max(0.0, grid_width - 1.0), ma = max(1.0, grid_width);
-	float g = clamp((f - df * mi) / (df * (ma - mi)), max(0.0, 1.0 - grid_width), 1.0);
+	// gl_FragColor = vec4(vertex_color, 
+	// 	mix(
+	// 		0.5 / object_distance / 0.2, 
+	// 		0.0, 
+	// 		1.0 - g
+	// 	)
+	// );
 
-
-
-	gl_FragColor = mix(vec4(0.2, 0.2, 0.2, 0.5), vec4(vertex_color,
-		float(0.0 < (snoise(
-				vec4(
-					original_position.x, 
-					original_position.y, 
-					original_position.z,
-					time
-					) * 0.05
-				) * 1.00
-				 + snoise(
-				vec4(
-					original_position.x, 
-					original_position.y, 
-					original_position.z,
-					time * 0.1
-					) * 0.50
-				) * 0.50
-				 + snoise(
-				vec4(
-					original_position.x, 
-					original_position.y, 
-					original_position.z,
-					time * 0.1
-					) * 2.0
-				) * 0.05
+	// gl_FragColor = vec4(vertex_color + (0.05 * object_distance), 1.0);
+	gl_FragColor = vec4(vertex_color, 
+		int(0.5 > snoise(
+			vec3(
+				original_position.x, 
+				original_position.y, 
+				original_position.z + time
+				) * 10.0
 			)
-		)), g
+		)
 	);
 
 }

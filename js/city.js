@@ -132,8 +132,8 @@ directional_light.position.set(-10, -5, 10)
 
 objects.add(directional_light)
 
-var ambient_light = new THREE.AmbientLight(0xFFFFFF, 0.50)
-objects.add(ambient_light)
+// var ambient_light = new THREE.AmbientLight(0xFFFFFF, 0.50)
+// objects.add(ambient_light)
 
 // Operations each frame
 //--------------------------------------------------

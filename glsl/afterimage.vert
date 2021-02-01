@@ -1,4 +1,8 @@
+uniform float focus;
+uniform float scale;
 uniform float time;
+uniform float space;
+uniform float location;
 
 varying float object_distance;
 varying vec3 vertex_color;
@@ -42,6 +46,7 @@ vec4 grad4(float j, vec4 ip) {
 
 // (sqrt(5) - 1)/4 = F4, used once below
 #define F4 0.309016994374947451
+
 
 float snoise(vec4 v) {
 	const vec4  C = vec4( 	+0.138196601125011,  // (5 - sqrt(5))/20  G4
@@ -230,45 +235,50 @@ float snoise(vec2 v) {
 	return 130.0 * dot(m, g);
 }
 
+vec3 curlify(vec3 position, float time) {
+
+	float offset_x = 100.0;
+	float offset_y = 200.0;
+	float offset_z = 300.0;
+	float fda = 0.1;
+
+	time = time * scale;
+	position.x = position.x * pow(scale, 6.4);
+	position.y = position.y * pow(scale, 6.4);
+
+	float d_x0_y = snoise(vec4(position.x - fda, position.y, position.z, time + offset_y));
+	float d_x0_z = snoise(vec4(position.x - fda, position.y, position.z, time + offset_z));
+	float d_x1_y = snoise(vec4(position.x + fda, position.y, position.z, time + offset_y));
+	float d_x1_z = snoise(vec4(position.x + fda, position.y, position.z, time + offset_z));
+	
+	float d_y0_x = snoise(vec4(position.x, position.y - fda, position.z, time + offset_x));
+	float d_y0_z = snoise(vec4(position.x, position.y - fda, position.z, time + offset_z));
+	float d_y1_x = snoise(vec4(position.x, position.y + fda, position.z, time + offset_x));
+	float d_y1_z = snoise(vec4(position.x, position.y + fda, position.z, time + offset_z));
+
+	float d_z0_x = snoise(vec4(position.x, position.y, position.z - fda, time + offset_x));
+	float d_z0_y = snoise(vec4(position.x, position.y, position.z - fda, time + offset_y));
+	float d_z1_x = snoise(vec4(position.x, position.y, position.z + fda, time + offset_x));
+	float d_z1_y = snoise(vec4(position.x, position.y, position.z + fda, time + offset_y));
+
+	float curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * fda);
+	float curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * fda);
+	float curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * fda);
+
+	curl_x = curl_x * scale;
+	curl_y = curl_y * scale;
+
+	return vec3(curl_x, curl_y, curl_z) * min(1.0, distance(position, vec3(0.0, 0.0, space / 2.0))) * min(1.0, distance(position, vec3(0.0, 0.0, -space / 2.0)));
+}
+
+
 void main() {
 
-	float grid_size = 0.5;
-	float grid_width = 1.2;
+	vertex_color = color;
+	original_position = position;
+	vertex_position = vec4(position + curlify(position, time), 1.0);
 
-	float f = abs(fract(vertex_position.y * grid_size) - 0.5);
-	float df = fwidth(vertex_position.y * grid_size);
-	float mi = max(0.0, grid_width - 1.0), ma = max(1.0, grid_width);
-	float g = clamp((f - df * mi) / (df * (ma - mi)), max(0.0, 1.0 - grid_width), 1.0);
-
-
-
-	gl_FragColor = mix(vec4(0.2, 0.2, 0.2, 0.5), vec4(vertex_color,
-		float(0.0 < (snoise(
-				vec4(
-					original_position.x, 
-					original_position.y, 
-					original_position.z,
-					time
-					) * 0.05
-				) * 1.00
-				 + snoise(
-				vec4(
-					original_position.x, 
-					original_position.y, 
-					original_position.z,
-					time * 0.1
-					) * 0.50
-				) * 0.50
-				 + snoise(
-				vec4(
-					original_position.x, 
-					original_position.y, 
-					original_position.z,
-					time * 0.1
-					) * 2.0
-				) * 0.05
-			)
-		)), g
-	);
+	object_distance = abs(-(modelViewMatrix * vertex_position).z - focus);
+	gl_Position = projectionMatrix * modelViewMatrix * vertex_position;
 
 }

@@ -3,6 +3,7 @@ import Contour from '/js/classes/Contour.js'
 import Retriever from '/js/classes/Retriever.js'
 import Custom_Textbox from '/js/classes/Custom_Textbox.js'
 import Something from '/js/classes/Experiment.js'
+import Swirls from '/js/classes/Afterimage.js'
 
 
 var files = new Retriever([
@@ -12,6 +13,8 @@ var files = new Retriever([
 	'glsl/contour.frag',
 	'glsl/experiment.vert',
 	'glsl/experiment.frag',
+	'glsl/afterimage.vert',
+	'glsl/afterimage.frag',
 ])
 
 // Performance Statistics
@@ -26,7 +29,8 @@ document.body.appendChild(stats.dom)
 //--------------------------------------------------
 var scene = new THREE.Scene()
 // scene.background = new THREE.Color(0x050505)
-scene.background = new THREE.Color(0xFFFEFD)
+// scene.background = new THREE.Color(0xFFFEFD)
+scene.background = new THREE.Color(0x141824)
 // scene.background = new THREE.Color(0xFFEEDD)
 //--------------------------------------------------
 
@@ -34,8 +38,9 @@ scene.background = new THREE.Color(0xFFFEFD)
 //--------------------------------------------------
 var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.001, 1000)
 // camera.position.set(0, 24, 16)
-camera.position.set(12, 16, 16)
-camera.lookAt(0, 0, 0)
+// camera.position.set(12, 14, 16)
+camera.position.set(5, 0, 0)
+// camera.lookAt(0, 0, 0)
 // //--------------------------------------------------
 
 // Mouse Position
@@ -129,11 +134,13 @@ controls.enablePan = false
 
 //--------------------------------------------------
 
+
+
 var stage = 0
-var grid = null
-var contour = null
-var something = null
-var instances = 32
+var instances = 16
+var line_01 = null
+var line_02 = null
+var line_03 = null
 
 // Operations each frame
 //--------------------------------------------------
@@ -146,17 +153,19 @@ var animate = function () {
 	if (stage == 0) {
 		if ((files.retrieving[0] / files.retrieving[1]) == 1) {
 
-			something = new Something(instances, 50, files.items)
-			something.mesh.position.set(0, 0, 0)
-			objects.add(something.mesh)
+			line_01 = new Swirls(instances, 20, files.items)
+			line_01.mesh.position.set(0, 0, 0)
+			objects.add(line_01.mesh)
 
-			// grid = new Grid(instances, 50, files.items)
-			// grid.cloud.position.set(0, -2, -18)
-			// objects.add(grid.cloud)
+			line_02 = new Swirls(instances, 20, files.items)
+			line_02.mesh.position.set(0, 0, 0)
+			objects.add(line_02.mesh)
 
-			// contour = new Contour(instances * 2, 50, files.items)
-			// contour.mesh.position.set(0, -28, -18)
-			// objects.add(contour.mesh)
+			line_03 = new Something(instances, 20, files.items)
+			line_03.mesh.position.set(-10, 0, 0)
+			objects.add(line_03.mesh)
+
+			// 17 44 155
 
 			stage++
 
@@ -167,7 +176,10 @@ var animate = function () {
 		// let delta1 = (vertical_target - camera.position.y) / 10
 		// camera.position.y += (vertical_target - camera.position.y) / 10
 
-		something.update()
+		line_01.update()
+		line_02.update()
+		line_03.update()
+
 		// contour.update()
 	}
 
