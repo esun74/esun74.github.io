@@ -46,7 +46,6 @@ var camera = new THREE.OrthographicCamera(
 	)
 camera.position.set(0, 0, -5)
 camera.lookAt(0, 0, 0)
-camera.zoom = 250
 camera.rotation.z = -0.3
 camera.updateProjectionMatrix()
 // //--------------------------------------------------
@@ -55,19 +54,82 @@ camera.updateProjectionMatrix()
 //--------------------------------------------------
 var raycaster = new THREE.Raycaster()
 var mouse = new THREE.Vector2()
-
-function onMouseMove(event) {
-	mouse.x = + ( event.clientX / window.innerWidth ) * 2 - 1
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1
-}
-
-window.addEventListener('mousemove', onMouseMove, false)
-
 var vertical_target = 0
-function onMouseWheel(event) {
-	vertical_target = Math.max(-1.57, Math.min(0, vertical_target - event.deltaY / 250))
-}
-window.addEventListener('wheel', onMouseWheel, false);
+var vertical_target_max = 0
+var vertical_target_min = -1.57
+var currently_clicking = false
+
+window.addEventListener('mousedown', e => {
+	currently_clicking = true
+}, false)
+
+window.addEventListener('mousemove', e => {
+
+	var new_x = +(e.clientX / window.innerWidth) * 2 - 1
+	var new_y = -(e.clientY / window.innerHeight) * 2 + 1
+
+	if (currently_clicking) {
+		vertical_target = Math.max(
+			vertical_target_min, 
+			Math.min(
+				vertical_target_max, 
+				vertical_target - (new_y - mouse.y) * 2
+			)
+		)
+
+		objects.rotation.y = vertical_target
+		objects.rotation.z = -vertical_target
+	}
+
+	mouse.x = new_x
+	mouse.y = new_y
+}, false)
+
+window.addEventListener('mouseup', e => {
+	currently_clicking = false
+}, false)
+
+window.addEventListener('touchstart', e => {
+	if (!e.changedTouches[0].identifier) {
+		console.log('Touch Start')
+		mouse.x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
+		mouse.y = -(e.touches[0].screenY / e.touches[0].clientY) * 2 + 1
+	} else {
+		console.log('DUPE TOUCH START')
+	}
+}, false)
+
+window.addEventListener('touchmove', e => {
+
+	var new_x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
+	var new_y = -(e.touches[0].screenY / e.touches[0].clientY) * 2 + 1
+
+	vertical_target = Math.max(
+		vertical_target_min, 
+		Math.min(
+			vertical_target_max, 
+			vertical_target - (mouse.y - new_y) * 2
+		)
+	)
+
+	objects.rotation.y = vertical_target
+	objects.rotation.z = -vertical_target
+
+	mouse.x = new_x
+	mouse.y = new_y
+}, false)
+
+window.addEventListener('touchend', e => {
+	if (!e.changedTouches[0].identifier) {
+		console.log('Touch End')
+	} else {
+		console.log('DUPE TOUCH END')
+	}
+}, false)
+
+window.addEventListener('wheel', e => {
+	vertical_target = Math.max(vertical_target_min, Math.min(vertical_target_max, vertical_target - event.deltaY / 250))
+}, false);
 //--------------------------------------------------
 
 // Configuring the Renderer and adding it to the DOM
@@ -81,15 +143,14 @@ document.body.appendChild(renderer.domElement)
 
 // Dynamic Canvas Sizing
 //--------------------------------------------------
-function onWindowResize() {
+window.addEventListener('resize', e => {
 	camera.left = window.innerWidth / - 2
 	camera.right = window.innerWidth / 2
 	camera.top = window.innerHeight / 2
 	camera.bottom = window.innerHeight / - 2
 	camera.updateProjectionMatrix()
 	renderer.setSize(window.innerWidth, window.innerHeight)
-}
-window.addEventListener('resize', onWindowResize, false)
+}, false)
 //--------------------------------------------------
 
 // Creating a group to hold objects
@@ -181,13 +242,11 @@ var animate = function () {
 		}
 	} else {
 
-		// let cutoff1 = -24
-		// let delta1 = (vertical_target - camera.position.y) / 10
-		// camera.position.y += (vertical_target - camera.position.y) / 10
-		objects.rotation.y += +(Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
-		objects.rotation.z += -(Math.max(vertical_target, -1.57) + objects.rotation.z) / 10
+		camera.zoom += (200 - camera.zoom) / 5
+		camera.updateProjectionMatrix()
 
-		console.log(vertical_target)
+		objects.rotation.y += +(Math.max(vertical_target, vertical_target_min) - objects.rotation.y) / 10
+		objects.rotation.z += -(Math.max(vertical_target, vertical_target_min) + objects.rotation.z) / 10
 
 		line_01.update()
 		line_02.update()
