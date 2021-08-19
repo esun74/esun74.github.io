@@ -233,7 +233,7 @@ float snoise(vec2 v) {
 void main() {
 
 	float grid_size = 0.5;
-	float grid_width = 1.2;
+	float grid_width = 2.0;
 
 	float f = abs(fract(vertex_position.y * grid_size) - 0.5);
 	float df = fwidth(vertex_position.y * grid_size);
@@ -242,7 +242,7 @@ void main() {
 
 
 
-	gl_FragColor = mix(vec4(0.2, 0.2, 0.2, 0.5), vec4(vertex_color,
+	gl_FragColor = mix(vec4(20.0 / 255.0, 24.0 / 255.0, 36.0 / 255.0, 0.5), vec4(vertex_color,
 		float(0.0 < (snoise(
 				vec4(
 					original_position.x, 
@@ -251,21 +251,21 @@ void main() {
 					time
 					) * 0.05
 				) * 1.00
+				 + max(0.0, snoise(
+				vec4(
+					original_position.x, 
+					original_position.y, 
+					original_position.z,
+					time * 0.1
+					) * 1.00
+				) * 0.25)
 				 + snoise(
 				vec4(
 					original_position.x, 
 					original_position.y, 
 					original_position.z,
 					time * 0.1
-					) * 0.50
-				) * 0.50
-				 + snoise(
-				vec4(
-					original_position.x, 
-					original_position.y, 
-					original_position.z,
-					time * 0.1
-					) * 2.0
+					) * 2.00
 				) * 0.05
 			)
 		)), g

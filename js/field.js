@@ -20,7 +20,7 @@ var files = new Retriever([
 // Performance Statistics
 //--------------------------------------------------
 var stats = new Stats()
-stats.showPanel(1) // 0: fps, 1: ms, 2: mb, 3+: custom
+stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild(stats.dom)
 // document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
@@ -30,17 +30,25 @@ document.body.appendChild(stats.dom)
 var scene = new THREE.Scene()
 // scene.background = new THREE.Color(0x050505)
 // scene.background = new THREE.Color(0xFFFEFD)
-scene.background = new THREE.Color(0x141824)
+scene.background = new THREE.Color(0x1E1E1E)
 // scene.background = new THREE.Color(0xFFEEDD)
 //--------------------------------------------------
 
 // Setting the Camera
 //--------------------------------------------------
-var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.001, 1000)
-// camera.position.set(0, 24, 16)
-// camera.position.set(12, 14, 16)
-camera.position.set(5, 0, 0)
-// camera.lookAt(0, 0, 0)
+// var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.001, 1000)
+var camera = new THREE.OrthographicCamera(
+	window.innerWidth / - 2, 
+	window.innerWidth / 2, 
+	window.innerHeight / 2, 
+	window.innerHeight / - 2, 
+	4, 6
+	)
+camera.position.set(0, 0, -5)
+camera.lookAt(0, 0, 0)
+camera.zoom = 250
+camera.rotation.z = -0.3
+camera.updateProjectionMatrix()
 // //--------------------------------------------------
 
 // Mouse Position
@@ -55,9 +63,9 @@ function onMouseMove(event) {
 
 window.addEventListener('mousemove', onMouseMove, false)
 
-var vertical_target = 4
+var vertical_target = 0
 function onMouseWheel(event) {
-	vertical_target = Math.max(-20, Math.min(4, vertical_target - event.deltaY / 15))
+	vertical_target = Math.max(-1.57, Math.min(0, vertical_target - event.deltaY / 250))
 }
 window.addEventListener('wheel', onMouseWheel, false);
 //--------------------------------------------------
@@ -74,7 +82,10 @@ document.body.appendChild(renderer.domElement)
 // Dynamic Canvas Sizing
 //--------------------------------------------------
 function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight
+	camera.left = window.innerWidth / - 2
+	camera.right = window.innerWidth / 2
+	camera.top = window.innerHeight / 2
+	camera.bottom = window.innerHeight / - 2
 	camera.updateProjectionMatrix()
 	renderer.setSize(window.innerWidth, window.innerHeight)
 }
@@ -89,10 +100,10 @@ scene.add(objects)
 
 // Orbit Controls
 //--------------------------------------------------
-import {OrbitControls} from '/js/three.js/examples/jsm/controls/OrbitControls.js'
-var controls = new OrbitControls(camera, renderer.domElement)
-controls.enableZoom = false
-controls.enablePan = false
+// import {OrbitControls} from '/js/three.js/examples/jsm/controls/OrbitControls.js'
+// var controls = new OrbitControls(camera, renderer.domElement)
+// controls.enableZoom = false
+// controls.enablePan = false
 //--------------------------------------------------
 
 
@@ -137,7 +148,7 @@ controls.enablePan = false
 
 
 var stage = 0
-var instances = 16
+var instances = 8
 var line_01 = null
 var line_02 = null
 var line_03 = null
@@ -153,19 +164,17 @@ var animate = function () {
 	if (stage == 0) {
 		if ((files.retrieving[0] / files.retrieving[1]) == 1) {
 
-			line_01 = new Swirls(instances, 20, files.items)
+			line_01 = new Swirls(instances, 10, files.items)
 			line_01.mesh.position.set(0, 0, 0)
 			objects.add(line_01.mesh)
 
-			line_02 = new Swirls(instances, 20, files.items)
+			line_02 = new Swirls(instances, 10, files.items)
 			line_02.mesh.position.set(0, 0, 0)
 			objects.add(line_02.mesh)
 
-			line_03 = new Something(instances, 20, files.items)
-			line_03.mesh.position.set(-10, 0, 0)
-			objects.add(line_03.mesh)
-
-			// 17 44 155
+			// line_03 = new Something(instances, 20, files.items)
+			// line_03.mesh.position.set(-10, 0, 0)
+			// objects.add(line_03.mesh)
 
 			stage++
 
@@ -175,10 +184,14 @@ var animate = function () {
 		// let cutoff1 = -24
 		// let delta1 = (vertical_target - camera.position.y) / 10
 		// camera.position.y += (vertical_target - camera.position.y) / 10
+		objects.rotation.y += +(Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
+		objects.rotation.z += -(Math.max(vertical_target, -1.57) + objects.rotation.z) / 10
+
+		console.log(vertical_target)
 
 		line_01.update()
 		line_02.update()
-		line_03.update()
+		// line_03.update()
 
 		// contour.update()
 	}
