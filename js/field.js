@@ -90,6 +90,7 @@ window.addEventListener('mouseup', e => {
 }, false)
 
 window.addEventListener('touchstart', e => {
+	e.preventDefault()
 	if (!e.changedTouches[0].identifier) {
 		console.log('Touch Start')
 		mouse.x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
