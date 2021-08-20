@@ -31,8 +31,8 @@ class Swirls {
 			let offset = (i - this.count) / this.count * 2 * Math.PI
 
 			offset = [
-				distance * Math.cos(offset),
-				distance * Math.sin(offset),
+				distance * Math.cos(offset) * (Math.random() * 0.25 + 0.75),
+				distance * Math.sin(offset) * (Math.random() * 0.25 + 0.75),
 			] 
 
 			let color = Math.random()

@@ -1,4 +1,3 @@
-import Grid from '/js/classes/Grid.js'
 import Contour from '/js/classes/Contour.js'
 import Retriever from '/js/classes/Retriever.js'
 import Custom_Textbox from '/js/classes/Custom_Textbox.js'
@@ -22,7 +21,7 @@ var files = new Retriever([
 var stats = new Stats()
 stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild(stats.dom)
-// document.body.addEventListener('click', () => {window.location.reload()}, true)
+document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
 
 // Setting the Scene
@@ -61,7 +60,7 @@ var currently_clicking = false
 
 window.addEventListener('mousedown', e => {
 	currently_clicking = true
-}, false)
+}, {passive: false})
 
 window.addEventListener('mousemove', e => {
 
@@ -78,16 +77,16 @@ window.addEventListener('mousemove', e => {
 		)
 
 		objects.rotation.y = vertical_target
-		objects.rotation.z = -vertical_target
+		objects.rotation.z = -vertical_target * 2
 	}
 
 	mouse.x = new_x
 	mouse.y = new_y
-}, false)
+}, {passive: false})
 
 window.addEventListener('mouseup', e => {
 	currently_clicking = false
-}, false)
+}, {passive: false})
 
 window.addEventListener('touchstart', e => {
 	e.preventDefault()
@@ -98,7 +97,7 @@ window.addEventListener('touchstart', e => {
 	} else {
 		console.log('DUPE TOUCH START')
 	}
-}, false)
+}, {passive: false})
 
 window.addEventListener('touchmove', e => {
 
@@ -114,11 +113,12 @@ window.addEventListener('touchmove', e => {
 	)
 
 	objects.rotation.y = vertical_target
-	objects.rotation.z = -vertical_target
+	objects.rotation.z = -vertical_target * 2
 
 	mouse.x = new_x
 	mouse.y = new_y
-}, false)
+}, {passive: false})
+window.addEventListener('touchforcechange', e => {e.preventDefault()}, {passive: false})
 
 window.addEventListener('touchend', e => {
 	if (!e.changedTouches[0].identifier) {
@@ -126,11 +126,11 @@ window.addEventListener('touchend', e => {
 	} else {
 		console.log('DUPE TOUCH END')
 	}
-}, false)
+}, {passive: false})
 
 window.addEventListener('wheel', e => {
 	vertical_target = Math.max(vertical_target_min, Math.min(vertical_target_max, vertical_target - event.deltaY / 250))
-}, false);
+}, {passive: false});
 //--------------------------------------------------
 
 // Configuring the Renderer and adding it to the DOM
@@ -151,7 +151,7 @@ window.addEventListener('resize', e => {
 	camera.bottom = window.innerHeight / - 2
 	camera.updateProjectionMatrix()
 	renderer.setSize(window.innerWidth, window.innerHeight)
-}, false)
+}, {passive: false})
 //--------------------------------------------------
 
 // Creating a group to hold objects
@@ -243,11 +243,14 @@ var animate = function () {
 		}
 	} else {
 
-		camera.zoom += (200 - camera.zoom) / 5
-		camera.updateProjectionMatrix()
+		if (camera.zoom != 200) {
+			camera.zoom += (200 - camera.zoom) / 5
+			camera.updateProjectionMatrix()
+		}
+		
 
 		objects.rotation.y += +(Math.max(vertical_target, vertical_target_min) - objects.rotation.y) / 10
-		objects.rotation.z += -(Math.max(vertical_target, vertical_target_min) + objects.rotation.z) / 10
+		objects.rotation.z += -(Math.max(vertical_target, vertical_target_min) * 2 + objects.rotation.z) / 10
 
 		line_01.update()
 		line_02.update()
