@@ -46,7 +46,7 @@ var raycaster = new THREE.Raycaster()
 var mouse = new THREE.Vector2()
 var vertical_target = 0
 var vertical_target_max = 0
-var vertical_target_min = -10
+var vertical_target_min = -8.6
 var currently_clicking = false
 
 window.addEventListener('mousedown', e => {
@@ -62,12 +62,12 @@ window.addEventListener('mousemove', e => {
 			vertical_target_min, 
 			Math.min(
 				vertical_target_max, 
-				vertical_target - (new_y - mouse.y) * 2
+				vertical_target - (new_y - mouse.y)
 			)
 		)
 
-		objects.rotation.y = +max(vertical_target, -1.57)
-		objects.rotation.z = -max(vertical_target, -1.57) * 2
+		objects.rotation.y = +Math.max(vertical_target, -1.57)
+		objects.rotation.z = -Math.max(vertical_target, -1.57) * 2
 	}
 
 	mouse.x = new_x
@@ -101,8 +101,8 @@ window.addEventListener('touchmove', e => {
 		)
 	)
 
-	objects.rotation.y = +max(vertical_target, -1.57)
-	objects.rotation.z = -max(vertical_target, -1.57) * 2
+	objects.rotation.y = +Math.max(vertical_target, -1.57)
+	objects.rotation.z = -Math.max(vertical_target, -1.57) * 2
 
 	mouse.x = new_x
 	mouse.y = new_y
@@ -139,6 +139,7 @@ window.addEventListener('resize', e => {
 	camera.right = window.innerWidth / 2
 	camera.top = window.innerHeight / 2
 	camera.bottom = window.innerHeight / - 2
+	camera.zoom = window.innerWidth / 10
 	camera.updateProjectionMatrix()
 	renderer.setSize(window.innerWidth, window.innerHeight)
 }, {passive: false})
@@ -174,6 +175,19 @@ var line_01 = null
 var line_02 = null
 var bottom_text = null
 
+var misc_line_geometry = new THREE.BufferGeometry()
+
+misc_line_geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+	0, 3.2, -3.2,
+	0, 3.2, +3.2,
+	0, 9.6, -3.2,
+	0, 9.6, +3.2,
+	0, 16., -3.2,
+	0, 16., +3.2,
+]), 3))
+
+objects.add(new THREE.LineSegments(misc_line_geometry, font_material))
+
 // Operations each frame
 //--------------------------------------------------
 
@@ -192,6 +206,32 @@ var animate = function () {
 			line_02 = new Swirls(instances, 10, files.items)
 			line_02.mesh.position.set(0, 0, 0)
 			objects.add(line_02.mesh)
+
+
+			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
+
+				var message = "Scroll Down"
+				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
+
+				text_geometry.computeBoundingBox()
+				text_geometry.translate(
+					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 3.6, 
+					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 2.4, 
+					0.99
+				)
+				// text_geometry.rotateX(Math.PI)
+				// text_geometry.rotateY(Math.PI / 2)
+
+				objects.add(new THREE.Mesh(
+					text_geometry, 
+					new THREE.MeshBasicMaterial({
+					color: 0xFFFEFD,
+					transparent: true,
+					opacity: 0.6,
+					side: THREE.DoubleSide
+				})))
+
+			})
 
 
 			font_loader.load('fonts/montserrat-medium-normal-500.json', font => {
@@ -230,15 +270,35 @@ var animate = function () {
 
 			})
 
+
 			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
 
-				var message = " test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n "
+				var message = "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis \nsuscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis \nautem vel eum iure reprehenderit qui in ea voluptate velit esse quam \nnihil molestiae consequatur, vel illum qui dolorem eum fugiat quo \nvoluptas nulla pariatur?"
 				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
 
 				text_geometry.computeBoundingBox()
 				text_geometry.translate(
-					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 2.2, 
-					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 7, 
+					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 0, 
+					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 6.4, 
+					-0.75
+				)
+				text_geometry.rotateX(Math.PI)
+				text_geometry.rotateY(Math.PI / 2)
+				// text_geometry.rotateX(Math.PI * 0.1)
+
+				objects.add(new THREE.Mesh(text_geometry, font_material))
+
+			})
+
+			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
+
+				var message = "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium \nvoluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint \noccaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia \nanimi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita \ndistinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit \nquo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, \nomnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum \nnecessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non \nrecusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis \nvoluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat."
+				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
+
+				text_geometry.computeBoundingBox()
+				text_geometry.translate(
+					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 0, 
+					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 12.8, 
 					-0.75
 				)
 				text_geometry.rotateX(Math.PI)
@@ -255,9 +315,9 @@ var animate = function () {
 
 	} else if (stage == 1) {
 
-		if (camera.zoom < 199) {
+		if (camera.zoom < window.innerWidth / 10) {
 
-			camera.zoom += (200 - camera.zoom) / 5
+			camera.zoom += (window.innerWidth / 10 + 50 - camera.zoom) / 20
 			camera.updateProjectionMatrix()
 
 			line_01.update()
@@ -276,7 +336,8 @@ var animate = function () {
 		objects.rotation.y += +(Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
 		objects.rotation.z += -(Math.max(vertical_target, -1.57) * 2 + objects.rotation.z) / 10
 
-		if (objects.rotation.y < -1.56) {
+		if (objects.rotation.y < -1.565) {
+			objects.rotation.y = -1.57
 			vertical_target = -1.57
 			stage++
 		}
@@ -288,16 +349,17 @@ var animate = function () {
 
 	} else if (stage == 3) {
 
-		camera.position.y += +(Math.min(vertical_target + 1.57) * 2 - camera.position.y) / 10
+		camera.position.y += +(Math.min(vertical_target + 1.57) * 2 - camera.position.y) / 5
 
 		if (camera.position.y > 0) {
 			camera.position.y = 0
 			stage--
 		}
 
-		line_01.update()
-		line_02.update()
-
+		if (camera.position.y > -4) {
+			line_01.update()
+			line_02.update()
+		}
 	}
 
 
