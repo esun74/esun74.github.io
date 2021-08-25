@@ -85,6 +85,7 @@ class Swirls {
 		this.geometry.setAttribute('position', new THREE.BufferAttribute(this.vertices, 3))
 		this.geometry.setAttribute('color', new THREE.BufferAttribute(this.colors, 3))
 		this.mesh = new THREE.LineSegments(this.geometry, this.material)
+		this.mesh.rotateX(-Math.PI * 0.1)
 
 	}
 

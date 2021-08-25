@@ -1,20 +1,11 @@
-import Contour from '/js/classes/Contour.js'
 import Retriever from '/js/classes/Retriever.js'
-import Custom_Textbox from '/js/classes/Custom_Textbox.js'
-import Something from '/js/classes/Experiment.js'
 import Swirls from '/js/classes/Afterimage.js'
 
-
 var files = new Retriever([
-	'glsl/field.vert',
-	'glsl/field.frag',
-	'glsl/contour.vert',
-	'glsl/contour.frag',
-	'glsl/experiment.vert',
-	'glsl/experiment.frag',
 	'glsl/afterimage.vert',
 	'glsl/afterimage.frag',
 ])
+
 
 // Performance Statistics
 //--------------------------------------------------
@@ -29,7 +20,8 @@ document.body.appendChild(stats.dom)
 var scene = new THREE.Scene()
 // scene.background = new THREE.Color(0x050505)
 // scene.background = new THREE.Color(0xFFFEFD)
-scene.background = new THREE.Color(0x1E1E1E)
+// scene.background = new THREE.Color(0x1E1E1E)
+scene.background = new THREE.Color(0x141824)
 // scene.background = new THREE.Color(0xFFEEDD)
 //--------------------------------------------------
 
@@ -43,9 +35,8 @@ var camera = new THREE.OrthographicCamera(
 	window.innerHeight / - 2, 
 	4, 6
 	)
-camera.position.set(0, 0, -5)
+camera.position.set(0, 0, 5)
 camera.lookAt(0, 0, 0)
-camera.rotation.z = -0.3
 camera.updateProjectionMatrix()
 // //--------------------------------------------------
 
@@ -55,7 +46,7 @@ var raycaster = new THREE.Raycaster()
 var mouse = new THREE.Vector2()
 var vertical_target = 0
 var vertical_target_max = 0
-var vertical_target_min = -1.57
+var vertical_target_min = -10
 var currently_clicking = false
 
 window.addEventListener('mousedown', e => {
@@ -63,7 +54,6 @@ window.addEventListener('mousedown', e => {
 }, {passive: false})
 
 window.addEventListener('mousemove', e => {
-
 	var new_x = +(e.clientX / window.innerWidth) * 2 - 1
 	var new_y = -(e.clientY / window.innerHeight) * 2 + 1
 
@@ -76,8 +66,8 @@ window.addEventListener('mousemove', e => {
 			)
 		)
 
-		objects.rotation.y = vertical_target
-		objects.rotation.z = -vertical_target * 2
+		objects.rotation.y = +max(vertical_target, -1.57)
+		objects.rotation.z = -max(vertical_target, -1.57) * 2
 	}
 
 	mouse.x = new_x
@@ -100,7 +90,6 @@ window.addEventListener('touchstart', e => {
 }, {passive: false})
 
 window.addEventListener('touchmove', e => {
-
 	var new_x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
 	var new_y = -(e.touches[0].screenY / e.touches[0].clientY) * 2 + 1
 
@@ -112,8 +101,8 @@ window.addEventListener('touchmove', e => {
 		)
 	)
 
-	objects.rotation.y = vertical_target
-	objects.rotation.z = -vertical_target * 2
+	objects.rotation.y = +max(vertical_target, -1.57)
+	objects.rotation.z = -max(vertical_target, -1.57) * 2
 
 	mouse.x = new_x
 	mouse.y = new_y
@@ -131,6 +120,7 @@ window.addEventListener('touchend', e => {
 window.addEventListener('wheel', e => {
 	vertical_target = Math.max(vertical_target_min, Math.min(vertical_target_max, vertical_target - event.deltaY / 250))
 }, {passive: false});
+
 //--------------------------------------------------
 
 // Configuring the Renderer and adding it to the DOM
@@ -164,56 +154,25 @@ scene.add(objects)
 //--------------------------------------------------
 // import {OrbitControls} from '/js/three.js/examples/jsm/controls/OrbitControls.js'
 // var controls = new OrbitControls(camera, renderer.domElement)
-// controls.enableZoom = false
-// controls.enablePan = false
 //--------------------------------------------------
 
-
+// Fonts
 //--------------------------------------------------
-
-// var title1 = new Custom_Textbox(
-// 	'Lorem Ipsum',
-// 	[0, 8, 0],
-// 	128,
-// 	'georgia',
-// 	'middle',
-// 	'#000000',
-// 	'center',)
-// objects.add(title1.sprite)
-
-// var subtitle1 = new Custom_Textbox(
-// 	'Dolor Sit Amet',
-// 	[0, 6.5, 0],
-// 	64,
-// 	'georgia',
-// 	'middle',
-// 	'#000000',
-// 	'center',)
-// objects.add(subtitle1.sprite)
-
-// var paragraph1 = new Custom_Textbox(
-// 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
-//  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
-//  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\
-//  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 
-//  	[0, -10, 0],
-//  	32,
-// 	'georgia',
-// 	'middle',
-// 	'#000000',
-// 	'left',)
-// objects.add(paragraph1.sprite)
-
-
+var font_loader = new THREE.FontLoader();
+var font_material = new THREE.MeshBasicMaterial({
+	color: 0xFFFEFD,
+	transparent: true,
+	opacity: 1.0,
+	side: THREE.DoubleSide
+})
 //--------------------------------------------------
-
 
 
 var stage = 0
 var instances = 8
 var line_01 = null
 var line_02 = null
-var line_03 = null
+var bottom_text = null
 
 // Operations each frame
 //--------------------------------------------------
@@ -234,29 +193,111 @@ var animate = function () {
 			line_02.mesh.position.set(0, 0, 0)
 			objects.add(line_02.mesh)
 
-			// line_03 = new Something(instances, 20, files.items)
-			// line_03.mesh.position.set(-10, 0, 0)
-			// objects.add(line_03.mesh)
+
+			font_loader.load('fonts/montserrat-medium-normal-500.json', font => {
+
+				var message = "Ipsum Lorem"
+				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.2))
+
+				text_geometry.computeBoundingBox()
+				text_geometry.translate(
+					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 - 2.6, 
+					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 + 1.4, 
+					+0.75
+				)
+				text_geometry.rotateX(Math.PI)
+				text_geometry.rotateY(Math.PI / 2)
+
+				objects.add(new THREE.Mesh(text_geometry, font_material))
+
+			})
+
+			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
+
+				var message = "Sed ut perspiciatis unde omnis iste natus error sit voluptatem \naccusantium doloremque laudantium, totam rem aperiam, eaque \nipsa quae ab illo inventore veritatis et quasi architecto beatae vitae \ndicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas \nsit aspernatur aut odit aut fugit, sed quia consequuntur magni \ndolores eos qui ratione voluptatem sequi nesciunt."
+				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
+
+				text_geometry.computeBoundingBox()
+				text_geometry.translate(
+					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 2.2, 
+					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 1.6, 
+					-0.75
+				)
+				text_geometry.rotateX(Math.PI)
+				text_geometry.rotateY(Math.PI / 2)
+
+				objects.add(new THREE.Mesh(text_geometry, font_material))
+
+			})
+
+			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
+
+				var message = " test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n test \n "
+				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
+
+				text_geometry.computeBoundingBox()
+				text_geometry.translate(
+					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 2.2, 
+					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 7, 
+					-0.75
+				)
+				text_geometry.rotateX(Math.PI)
+				text_geometry.rotateY(Math.PI / 2)
+				// text_geometry.rotateX(Math.PI * 0.1)
+
+				objects.add(new THREE.Mesh(text_geometry, font_material))
+
+			})
 
 			stage++
 
 		}
-	} else {
 
-		if (camera.zoom != 200) {
+	} else if (stage == 1) {
+
+		if (camera.zoom < 199) {
+
 			camera.zoom += (200 - camera.zoom) / 5
 			camera.updateProjectionMatrix()
+
+			line_01.update()
+			line_02.update()
+			
+		} else {
+
+			vertical_target = 0
+			stage++
+
 		}
 		
 
-		objects.rotation.y += +(Math.max(vertical_target, vertical_target_min) - objects.rotation.y) / 10
-		objects.rotation.z += -(Math.max(vertical_target, vertical_target_min) * 2 + objects.rotation.z) / 10
+	} else if (stage == 2) {
+
+		objects.rotation.y += +(Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
+		objects.rotation.z += -(Math.max(vertical_target, -1.57) * 2 + objects.rotation.z) / 10
+
+		if (objects.rotation.y < -1.56) {
+			vertical_target = -1.57
+			stage++
+		}
 
 		line_01.update()
 		line_02.update()
-		// line_03.update()
 
-		// contour.update()
+		font_material.opacity = -(objects.rotation.y + (Math.PI / 4))
+
+	} else if (stage == 3) {
+
+		camera.position.y += +(Math.min(vertical_target + 1.57) * 2 - camera.position.y) / 10
+
+		if (camera.position.y > 0) {
+			camera.position.y = 0
+			stage--
+		}
+
+		line_01.update()
+		line_02.update()
+
 	}
 
 
