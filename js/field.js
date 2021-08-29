@@ -4,6 +4,11 @@ import Swirls from '/js/classes/Afterimage.js'
 var files = new Retriever([
 	'glsl/afterimage.vert',
 	'glsl/afterimage.frag',
+	'fonts/montserrat-medium-normal-500.json',
+	'fonts/montserrat-regular-normal-400.json',
+	'fonts/montserrat-light-normal-300.json',
+	'fonts/montserrat-thin-normal-100.json',
+	'js/text.json',
 ])
 
 
@@ -35,8 +40,9 @@ var camera = new THREE.OrthographicCamera(
 	window.innerHeight / - 2, 
 	4, 6
 	)
-camera.position.set(0, 0, 5)
+camera.position.set(0, 0, 10)
 camera.lookAt(0, 0, 0)
+camera.zoom = window.innerWidth / 10
 camera.updateProjectionMatrix()
 // //--------------------------------------------------
 
@@ -62,7 +68,7 @@ window.addEventListener('mousemove', e => {
 			vertical_target_min, 
 			Math.min(
 				vertical_target_max, 
-				vertical_target - (new_y - mouse.y)
+				vertical_target - (new_y - mouse.y) * 1.2
 			)
 		)
 
@@ -163,9 +169,18 @@ var font_loader = new THREE.FontLoader();
 var font_material = new THREE.MeshBasicMaterial({
 	color: 0xFFFEFD,
 	transparent: true,
-	opacity: 1.0,
+	opacity: 0.01,
 	side: THREE.DoubleSide
 })
+var font_material2 = new THREE.MeshBasicMaterial({
+	color: 0xFFFEFD,
+	transparent: true,
+	opacity: 0.01,
+	side: THREE.DoubleSide
+})
+
+var loaded_fonts = {}
+
 //--------------------------------------------------
 
 
@@ -173,7 +188,6 @@ var stage = 0
 var instances = 8
 var line_01 = null
 var line_02 = null
-var bottom_text = null
 
 var misc_line_geometry = new THREE.BufferGeometry()
 
@@ -197,7 +211,15 @@ var animate = function () {
 	// raycaster.setFromCamera(mouse, camera)
 
 	if (stage == 0) {
-		if ((files.retrieving[0] / files.retrieving[1]) == 1) {
+
+		if (files.retrieving[0] == files.retrieving[1]) {
+
+			console.log('Files Retrieved')
+
+			files.items['fonts/montserrat-medium-normal-500.json'] = font_loader.parse(files.items['fonts/montserrat-medium-normal-500.json'])
+			files.items['fonts/montserrat-regular-normal-400.json'] = font_loader.parse(files.items['fonts/montserrat-regular-normal-400.json'])
+			files.items['fonts/montserrat-light-normal-300.json'] = font_loader.parse(files.items['fonts/montserrat-light-normal-300.json'])
+			files.items['fonts/montserrat-thin-normal-100.json'] = font_loader.parse(files.items['fonts/montserrat-thin-normal-100.json'])
 
 			line_01 = new Swirls(instances, 10, files.items)
 			line_01.mesh.position.set(0, 0, 0)
@@ -208,124 +230,58 @@ var animate = function () {
 			objects.add(line_02.mesh)
 
 
-			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
+			for (let i in files.items['js/text.json'].content) {
 
-				var message = "Scroll Down"
-				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
+				i = files.items['js/text.json'].content[i]
 
-				text_geometry.computeBoundingBox()
-				text_geometry.translate(
-					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 3.6, 
-					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 2.4, 
-					0.99
+				console.log('Creating Text: \n' + i.text)
+
+				let text_shape = new THREE.ShapeGeometry(files.items[i.font].generateShapes(i.text, i.size))
+				text_shape.computeBoundingBox()
+				text_shape.translate(
+					(text_shape.boundingBox.min.x - text_shape.boundingBox.max.x) / 2 + i.x_offset, 
+					(text_shape.boundingBox.max.y - text_shape.boundingBox.min.y) / 2 + i.y_offset, 
+					i.z_offset
 				)
-				// text_geometry.rotateX(Math.PI)
-				// text_geometry.rotateY(Math.PI / 2)
+				text_shape.rotateX(Math.PI * i.x_rotate)
+				text_shape.rotateY(Math.PI * i.y_rotate)
 
-				objects.add(new THREE.Mesh(
-					text_geometry, 
-					new THREE.MeshBasicMaterial({
-					color: 0xFFFEFD,
-					transparent: true,
-					opacity: 0.6,
-					side: THREE.DoubleSide
-				})))
+				objects.add(new THREE.Mesh(text_shape, font_material))
 
-			})
+			}
 
-
-			font_loader.load('fonts/montserrat-medium-normal-500.json', font => {
-
-				var message = "Ipsum Lorem"
-				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.2))
-
-				text_geometry.computeBoundingBox()
-				text_geometry.translate(
-					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 - 2.6, 
-					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 + 1.4, 
-					+0.75
-				)
-				text_geometry.rotateX(Math.PI)
-				text_geometry.rotateY(Math.PI / 2)
-
-				objects.add(new THREE.Mesh(text_geometry, font_material))
-
-			})
-
-			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
-
-				var message = "Sed ut perspiciatis unde omnis iste natus error sit voluptatem \naccusantium doloremque laudantium, totam rem aperiam, eaque \nipsa quae ab illo inventore veritatis et quasi architecto beatae vitae \ndicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas \nsit aspernatur aut odit aut fugit, sed quia consequuntur magni \ndolores eos qui ratione voluptatem sequi nesciunt."
-				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
-
-				text_geometry.computeBoundingBox()
-				text_geometry.translate(
-					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 2.2, 
-					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 1.6, 
-					-0.75
-				)
-				text_geometry.rotateX(Math.PI)
-				text_geometry.rotateY(Math.PI / 2)
-
-				objects.add(new THREE.Mesh(text_geometry, font_material))
-
-			})
-
-
-			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
-
-				var message = "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis \nsuscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis \nautem vel eum iure reprehenderit qui in ea voluptate velit esse quam \nnihil molestiae consequatur, vel illum qui dolorem eum fugiat quo \nvoluptas nulla pariatur?"
-				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
-
-				text_geometry.computeBoundingBox()
-				text_geometry.translate(
-					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 0, 
-					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 6.4, 
-					-0.75
-				)
-				text_geometry.rotateX(Math.PI)
-				text_geometry.rotateY(Math.PI / 2)
-				// text_geometry.rotateX(Math.PI * 0.1)
-
-				objects.add(new THREE.Mesh(text_geometry, font_material))
-
-			})
-
-			font_loader.load('fonts/montserrat-light-normal-300.json', font => {
-
-				var message = "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium \nvoluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint \noccaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia \nanimi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita \ndistinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit \nquo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, \nomnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum \nnecessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non \nrecusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis \nvoluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat."
-				var text_geometry = new THREE.ShapeGeometry(font.generateShapes(message, 0.1))
-
-				text_geometry.computeBoundingBox()
-				text_geometry.translate(
-					(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 0, 
-					(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 12.8, 
-					-0.75
-				)
-				text_geometry.rotateX(Math.PI)
-				text_geometry.rotateY(Math.PI / 2)
-				// text_geometry.rotateX(Math.PI * 0.1)
-
-				objects.add(new THREE.Mesh(text_geometry, font_material))
-
-			})
-
+			console.log('Stage 1 -> Stage 2')
 			stage++
 
 		}
 
 	} else if (stage == 1) {
+		if (camera.position.z > 5) {
 
-		if (camera.zoom < window.innerWidth / 10) {
-
-			camera.zoom += (window.innerWidth / 10 + 50 - camera.zoom) / 20
-			camera.updateProjectionMatrix()
+			camera.position.z += (4.95 - camera.position.z) / 20
 
 			line_01.update()
 			line_02.update()
 			
 		} else {
 
+			var text_geometry = new THREE.ShapeGeometry(files.items['fonts/montserrat-light-normal-300.json'].generateShapes("Scroll Down", 0.1))
+
+			text_geometry.computeBoundingBox()
+			text_geometry.translate(
+				(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 3.6, 
+				(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 2.4, 
+				0
+			)
+
+			objects.add(new THREE.Mesh(
+				text_geometry, 
+				font_material2))
+
+			camera.position.z = 5
 			vertical_target = 0
+
+			console.log('Stage 2 -> Stage 3')
 			stage++
 
 		}
@@ -333,12 +289,16 @@ var animate = function () {
 
 	} else if (stage == 2) {
 
-		objects.rotation.y += +(Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
-		objects.rotation.z += -(Math.max(vertical_target, -1.57) * 2 + objects.rotation.z) / 10
+		font_material2.opacity += (Math.min(vertical_target * 5 + 1, 0.5) - font_material2.opacity) / 10
+
+		objects.rotation.y += (Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
+		objects.rotation.z -= (objects.rotation.z + Math.max(vertical_target, -1.57) * 2) / 10
 
 		if (objects.rotation.y < -1.565) {
 			objects.rotation.y = -1.57
 			vertical_target = -1.57
+
+			console.log('Stage 3 -> Stage 4')
 			stage++
 		}
 
@@ -349,10 +309,12 @@ var animate = function () {
 
 	} else if (stage == 3) {
 
-		camera.position.y += +(Math.min(vertical_target + 1.57) * 2 - camera.position.y) / 5
+		camera.position.y += +((vertical_target + 1.57) * 2 - camera.position.y) / 5
 
 		if (camera.position.y > 0) {
 			camera.position.y = 0
+
+			console.log('Stage 4 -> Stage 3')
 			stage--
 		}
 

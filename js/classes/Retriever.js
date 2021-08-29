@@ -12,7 +12,11 @@ class Retriever {
 		req.onreadystatechange = () => {
 			if (req.readyState === 4) {
 				console.log('Received ' + path)
-				target[path] = req.response
+				if (path.endsWith('.json')) {
+					target[path] = JSON.parse(req.response)
+				} else {
+					target[path] = req.response
+				}
 				this.retrieving[0]++
 			}
 		};
