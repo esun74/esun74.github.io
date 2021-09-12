@@ -170,7 +170,9 @@ var font_material = new THREE.MeshBasicMaterial({
 	color: 0xFFFEFD,
 	transparent: true,
 	opacity: 0.01,
-	side: THREE.DoubleSide
+	side: THREE.DoubleSide,
+	depthTest: false,
+	depthWrite: false,
 })
 var font_material2 = new THREE.MeshBasicMaterial({
 	color: 0xFFFEFD,
@@ -250,6 +252,24 @@ var animate = function () {
 
 			}
 
+			for (let i = 0; i < 1024; i++) {
+
+				let test_text = Math.random().toString(36).substr(2, 14)
+				console.log('Creating Text: ' + test_text)
+				let text_shape = new THREE.ShapeGeometry(files.items['fonts/montserrat-thin-normal-100.json'].generateShapes(test_text, 0.1))
+				text_shape.computeBoundingBox()
+				text_shape.translate(
+					(text_shape.boundingBox.min.x - text_shape.boundingBox.max.x) / 2 + (Math.random() - 0.5) * 9.0, 
+					(text_shape.boundingBox.max.y - text_shape.boundingBox.min.y) / 2 + (Math.random() - 1.8) * 5.0, 
+					(Math.random() - 0.5)
+				)
+				text_shape.rotateX(Math.PI * 1.0)
+				text_shape.rotateY(Math.PI * 0.5)
+
+				objects.add(new THREE.Mesh(text_shape, font_material))
+
+			}
+
 			console.log('Stage 1 -> Stage 2')
 			stage++
 
@@ -264,6 +284,8 @@ var animate = function () {
 			line_02.update()
 			
 		} else {
+
+			console.log('Creating Text: \nScroll Down')
 
 			var text_geometry = new THREE.ShapeGeometry(files.items['fonts/montserrat-light-normal-300.json'].generateShapes("Scroll Down", 0.1))
 
@@ -286,9 +308,9 @@ var animate = function () {
 
 		}
 		
-
 	} else if (stage == 2) {
 
+		font_material.opacity = (3 * objects.rotation.y + Math.PI) / -2
 		font_material2.opacity += (Math.min(vertical_target * 5 + 1, 0.5) - font_material2.opacity) / 10
 
 		objects.rotation.y += (Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
@@ -304,8 +326,6 @@ var animate = function () {
 
 		line_01.update()
 		line_02.update()
-
-		font_material.opacity = -(objects.rotation.y + (Math.PI / 4))
 
 	} else if (stage == 3) {
 
