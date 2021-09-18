@@ -1,3 +1,5 @@
+import * as THREE from 'https://cdn.skypack.dev/three'
+
 class Swirls {
 	constructor(count, space, items) {
 		this.count = count

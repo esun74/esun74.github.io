@@ -1,9 +1,17 @@
+import * as THREE from 'https://cdn.skypack.dev/three'
 import Retriever from '/js/classes/Retriever.js'
 import Swirls from '/js/classes/Afterimage.js'
+import FBO from '/js/classes/FrameBufferObject.js'
+
+console.log(THREE.REVISION)
 
 var files = new Retriever([
 	'glsl/afterimage.vert',
 	'glsl/afterimage.frag',
+	'glsl/simulation.vert',
+	'glsl/simulation.frag',
+	'glsl/particles.vert',
+	'glsl/particles.frag',
 	'fonts/montserrat-medium-normal-500.json',
 	'fonts/montserrat-regular-normal-400.json',
 	'fonts/montserrat-light-normal-300.json',
@@ -38,7 +46,9 @@ var camera = new THREE.OrthographicCamera(
 	window.innerWidth / 2, 
 	window.innerHeight / 2, 
 	window.innerHeight / - 2, 
-	4, 6
+	// 4, 6
+
+	-100, 100
 	)
 camera.position.set(0, 0, 10)
 camera.lookAt(0, 0, 0)
@@ -52,7 +62,7 @@ var raycaster = new THREE.Raycaster()
 var mouse = new THREE.Vector2()
 var vertical_target = 0
 var vertical_target_max = 0
-var vertical_target_min = -8.6
+var vertical_target_min = -7.97
 var currently_clicking = false
 
 window.addEventListener('mousedown', e => {
@@ -181,8 +191,6 @@ var font_material2 = new THREE.MeshBasicMaterial({
 	side: THREE.DoubleSide
 })
 
-var loaded_fonts = {}
-
 //--------------------------------------------------
 
 
@@ -190,6 +198,7 @@ var stage = 0
 var instances = 8
 var line_01 = null
 var line_02 = null
+var cloud = null
 
 var misc_line_geometry = new THREE.BufferGeometry()
 
@@ -236,8 +245,6 @@ var animate = function () {
 
 				i = files.items['js/text.json'].content[i]
 
-				console.log('Creating Text: \n' + i.text)
-
 				let text_shape = new THREE.ShapeGeometry(files.items[i.font].generateShapes(i.text, i.size))
 				text_shape.computeBoundingBox()
 				text_shape.translate(
@@ -252,23 +259,36 @@ var animate = function () {
 
 			}
 
-			for (let i = 0; i < 1024; i++) {
 
-				let test_text = Math.random().toString(36).substr(2, 14)
-				console.log('Creating Text: ' + test_text)
-				let text_shape = new THREE.ShapeGeometry(files.items['fonts/montserrat-thin-normal-100.json'].generateShapes(test_text, 0.1))
-				text_shape.computeBoundingBox()
-				text_shape.translate(
-					(text_shape.boundingBox.min.x - text_shape.boundingBox.max.x) / 2 + (Math.random() - 0.5) * 9.0, 
-					(text_shape.boundingBox.max.y - text_shape.boundingBox.min.y) / 2 + (Math.random() - 1.8) * 5.0, 
-					(Math.random() - 0.5)
-				)
-				text_shape.rotateX(Math.PI * 1.0)
-				text_shape.rotateY(Math.PI * 0.5)
 
-				objects.add(new THREE.Mesh(text_shape, font_material))
+			// for (let i = 0; i < 25; i++) {
 
-			}
+			// 	let test_text = Math.random().toString(36).substr(2, 14)
+			// 	let text_shape = new THREE.ShapeGeometry(files.items['fonts/montserrat-thin-normal-100.json'].generateShapes(test_text, 0.1))
+			// 	text_shape.computeBoundingBox()
+			// 	text_shape.translate(
+			// 		(text_shape.boundingBox.min.x - text_shape.boundingBox.max.x) / 2 + (Math.random() - 0.5) * 9.0, 
+			// 		(text_shape.boundingBox.max.y - text_shape.boundingBox.min.y) / 2 + (Math.random() - 1.8) * 5.0, 
+			// 		(Math.random() - 0.5)
+			// 	)
+			// 	text_shape.rotateX(Math.PI * 1.0)
+			// 	text_shape.rotateY(Math.PI * 0.5)
+
+			// 	objects.add(new THREE.Mesh(text_shape, font_material))
+
+			// }
+
+			cloud = new FBO(
+				256,
+				renderer, 
+				files,
+			)
+
+			cloud.particles.position.set(0, 6.4, 0)
+
+			objects.add(cloud.particles)
+			// objects.add(cloud.mesh)
+
 
 			console.log('Stage 1 -> Stage 2')
 			stage++
@@ -326,6 +346,7 @@ var animate = function () {
 
 		line_01.update()
 		line_02.update()
+		cloud.update()
 
 	} else if (stage == 3) {
 
@@ -338,10 +359,11 @@ var animate = function () {
 			stage--
 		}
 
-		if (camera.position.y > -4) {
+		if (camera.position.y > -5) {
 			line_01.update()
 			line_02.update()
 		}
+		cloud.update()
 	}
 
 
