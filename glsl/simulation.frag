@@ -141,18 +141,24 @@ vec3 curlify(vec3 position, float time) {
   float curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * fda);
   float curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * fda);
 
-  return vec3(curl_x, curl_y, curl_z) / sqrt(curl_x * curl_x + curl_y * curl_y + curl_z * curl_z);
+  // return vec3(curl_x, curl_y, curl_z) / sqrt(curl_x * curl_x + curl_y * curl_y + curl_z * curl_z);
+  return vec3(curl_x, curl_y, curl_z);
 }
 
 void main() {
  
     vec3 pos = texture2D(positions, vUv).stp;
 
+    if (pos.y < -3.2) {
+      pos = vec3(pos.x, 3.2, pos.z);
+    }
     // xyzw, rgba, stpq
 
-    pos += curlify(pos, uTime) * 0.01;
+    pos += curlify(pos, uTime) * 0.005;
 
-    pos *= 0.999;
+    pos.x *= 0.998;
+    pos.y -= 0.01;
+    pos.z *= 0.998;
 
     // pos += vec3(0.1, 0.1, 0.1);
 

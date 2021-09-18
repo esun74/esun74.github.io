@@ -46,9 +46,9 @@ var camera = new THREE.OrthographicCamera(
 	window.innerWidth / 2, 
 	window.innerHeight / 2, 
 	window.innerHeight / - 2, 
-	// 4, 6
+	4, 6
 
-	-100, 100
+	// -100, 100
 	)
 camera.position.set(0, 0, 10)
 camera.lookAt(0, 0, 0)
@@ -346,24 +346,32 @@ var animate = function () {
 
 		line_01.update()
 		line_02.update()
-		cloud.update()
 
 	} else if (stage == 3) {
 
 		camera.position.y += +((vertical_target + 1.57) * 2 - camera.position.y) / 5
 
+		camera.far = 6 - camera.position.y
+		camera.near = 4 + camera.position.y
+		camera.updateProjectionMatrix()
+
 		if (camera.position.y > 0) {
 			camera.position.y = 0
+			camera.far = 6
+			camera.near = 4
+			camera.updateProjectionMatrix()
 
 			console.log('Stage 4 -> Stage 3')
 			stage--
 		}
 
-		if (camera.position.y > -5) {
+		if (camera.position.y > -3.6) {
 			line_01.update()
 			line_02.update()
+		} else {
+			cloud.update()
 		}
-		cloud.update()
+		
 	}
 
 

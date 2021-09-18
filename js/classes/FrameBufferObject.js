@@ -44,9 +44,18 @@ export default class FBO {
 		let length = size * size
 		let data = new Float32Array(length * 4)
 		for (let i = 0; i < length * 4; i += 4) {
-			data[i + 0] = (Math.random() - 0.5) * 1.0
-			data[i + 1] = (Math.random() - 0.5) * 1.0
-			data[i + 2] = (Math.random() - 0.5) * 1.0
+
+			var phi = Math.random() * 2 * Math.PI
+			var cos_theta = Math.random() * 2 - 1
+			var u = Math.random()
+
+			var theta = Math.acos(cos_theta)
+			var r = 1 * Math.cbrt(u)
+
+			data[i + 0] = r * Math.sin(theta) * Math.cos(phi)
+			data[i + 1] = r * Math.sin(theta) * Math.sin(phi)
+			data[i + 2] = r * Math.cos(theta)
+
 			data[i + 3] = (Math.random() - 0.5) * 1.0
 		}
 
@@ -107,7 +116,7 @@ export default class FBO {
 		this.renderer.setRenderTarget(null)
 		this.renderer.clear()
 
-		this.time = 0
+		this.time = Math.random() * 100
 
 	}
 
