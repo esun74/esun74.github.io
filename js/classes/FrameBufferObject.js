@@ -106,6 +106,7 @@ export default class FBO {
 			particle_geometry, 
 			this.particle_material
 		)
+		
 
 
 		this.notRenderTargetTexture = this.renderTargetTexture.clone()

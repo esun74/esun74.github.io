@@ -339,6 +339,7 @@ var animate = function () {
 		if (objects.rotation.y < -1.565) {
 			objects.rotation.y = -1.57
 			vertical_target = -1.57
+			cloud.particles.frustumCulled = false
 
 			console.log('Stage 3 -> Stage 4')
 			stage++
@@ -360,6 +361,7 @@ var animate = function () {
 			camera.far = 6
 			camera.near = 4
 			camera.updateProjectionMatrix()
+			cloud.particles.frustumCulled = true
 
 			console.log('Stage 4 -> Stage 3')
 			stage--
