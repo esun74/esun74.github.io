@@ -8,5 +8,5 @@ uniform vec3 d; // phase of d
 
 
 void main() {
-    gl_FragColor = vec4(a + b * cos(6.28318 * (c * (texture2D(positions, uv_pos).q * 15.0) + d)), 0.75);
+    gl_FragColor = vec4(a + b * cos(6.28318 * (c * (texture2D(positions, uv_pos).q * 25.0) + d)), 0.5);
 }

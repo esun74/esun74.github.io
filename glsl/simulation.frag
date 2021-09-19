@@ -153,9 +153,10 @@ void main() {
 
     if (pos.y > 3.2) {
       pos.y -= 6.4;
-    } else if (pos.y < -3.2) {
-      pos.y += 0.01;
     }
+    // } else if (pos.y < -3.2) {
+    //   pos.y += 0.01;
+    // }
 
     pos += curlify(pos, time) * 0.005;
 
