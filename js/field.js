@@ -279,15 +279,14 @@ var animate = function () {
 			// }
 
 			cloud = new FBO(
-				256,
+				Math.pow(2, 8),
 				renderer, 
 				files,
 			)
-
 			cloud.particles.position.set(0, 6.4, 0)
-
+			cloud.particles.visible = false
+			cloud.particles.frustumCulled = false
 			objects.add(cloud.particles)
-			// objects.add(cloud.mesh)
 
 
 			console.log('Stage 1 -> Stage 2')
@@ -339,7 +338,7 @@ var animate = function () {
 		if (objects.rotation.y < -1.565) {
 			objects.rotation.y = -1.57
 			vertical_target = -1.57
-			cloud.particles.frustumCulled = false
+			cloud.particles.visible = true
 
 			console.log('Stage 3 -> Stage 4')
 			stage++
@@ -361,7 +360,7 @@ var animate = function () {
 			camera.far = 6
 			camera.near = 4
 			camera.updateProjectionMatrix()
-			cloud.particles.frustumCulled = true
+			cloud.particles.visible = false
 
 			console.log('Stage 4 -> Stage 3')
 			stage--

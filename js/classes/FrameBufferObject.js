@@ -56,7 +56,7 @@ export default class FBO {
 			data[i + 1] = r * Math.sin(theta) * Math.sin(phi)
 			data[i + 2] = r * Math.cos(theta)
 
-			data[i + 3] = (Math.random() - 0.5) * 1.0
+			data[i + 3] = 0
 		}
 
 		const data_positions = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType)
@@ -67,9 +67,7 @@ export default class FBO {
 			fragmentShader: files.items['glsl/simulation.frag'],
 			uniforms: {
 				positions: {value: data_positions},
-				uTime: {value: 0},
-				uSpeed: {value: 0.1},
-				uCurlFreq: {value: 0.1},
+				time: {value: 0},
 			},
 			depthTest: false,
 		})
@@ -94,9 +92,13 @@ export default class FBO {
 			fragmentShader: files.items['glsl/particles.frag'],
 			uniforms: {
 				positions: {value: data_positions},
-				uTime: {value: 0},
 				pointSize: {value: 1},
-				uOpacity: {value: 0.35},
+
+				a: {value: [0.5, 0.5, 0.5]},
+				b: {value: [0.5, 0.5, 0.5]},
+				c: {value: [1.0, 1.0, 1.0]},
+				d: {value: [0.0, 0.1, 0.2]},
+
 			},
 			transparent: true,
 			blending: THREE.AdditiveBlending,
@@ -106,8 +108,6 @@ export default class FBO {
 			particle_geometry, 
 			this.particle_material
 		)
-		
-
 
 		this.notRenderTargetTexture = this.renderTargetTexture.clone()
 		this.flip = true
@@ -115,7 +115,7 @@ export default class FBO {
 		this.renderer.setRenderTarget(this.renderTargetTexture)
 		this.renderer.render(this.scene, this.camera)
 		this.renderer.setRenderTarget(null)
-		this.renderer.clear()
+		// this.renderer.clear()
 
 		this.time = Math.random() * 100
 
@@ -123,25 +123,21 @@ export default class FBO {
 
 	update() {
 
-
-		this.mesh.material.uniforms.uTime.value = this.time
-		this.time += 0.001
+		this.mesh.material.uniforms.time.value = this.time
+		this.time += 0.0005
 
 		if (this.flip) {
 			this.particles.material.uniforms.positions.value = this.renderTargetTexture.texture
 			this.mesh.material.uniforms.positions.value = this.renderTargetTexture.texture
-
 			this.renderer.setRenderTarget(this.notRenderTargetTexture)
-			this.renderer.render(this.scene, this.camera)
-			this.renderer.setRenderTarget(null)
 		} else {
 			this.particles.material.uniforms.positions.value = this.notRenderTargetTexture.texture
 			this.mesh.material.uniforms.positions.value = this.notRenderTargetTexture.texture
-
 			this.renderer.setRenderTarget(this.renderTargetTexture)
-			this.renderer.render(this.scene, this.camera)
-			this.renderer.setRenderTarget(null)
 		}
+
+		this.renderer.render(this.scene, this.camera)
+		this.renderer.setRenderTarget(null)
 		this.flip = !this.flip
 	}
 }
