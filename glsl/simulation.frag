@@ -1,4 +1,7 @@
-uniform sampler2D positions; //DATA Texture containing original positions
+uniform sampler2D positions;
+uniform sampler2D sphere_positions;
+uniform sampler2D cube_positions;
+uniform float y_pos;
 uniform float time;
 varying vec2 uv_pos;
 // in float time;
@@ -119,50 +122,65 @@ vec4 curlify(vec4 position, float time) {
   float offset_y = 200.0;
   float offset_z = 300.0;
   float fda = 0.1;
+  float speed = 0.005;
+  float scale = 0.25;
 
-  position *= 0.25;
+  vec4 pos = position * scale;
 
-  float d_x0_y = snoise(vec4(position.x - fda, position.y, position.z, time + offset_y));
-  float d_x0_z = snoise(vec4(position.x - fda, position.y, position.z, time + offset_z));
-  float d_x1_y = snoise(vec4(position.x + fda, position.y, position.z, time + offset_y));
-  float d_x1_z = snoise(vec4(position.x + fda, position.y, position.z, time + offset_z));
+  float d_x0_y = snoise(vec4(pos.x - fda, pos.y, pos.z, time + offset_y));
+  float d_x0_z = snoise(vec4(pos.x - fda, pos.y, pos.z, time + offset_z));
+  float d_x1_y = snoise(vec4(pos.x + fda, pos.y, pos.z, time + offset_y));
+  float d_x1_z = snoise(vec4(pos.x + fda, pos.y, pos.z, time + offset_z));
   
-  float d_y0_x = snoise(vec4(position.x, position.y - fda, position.z, time + offset_x));
-  float d_y0_z = snoise(vec4(position.x, position.y - fda, position.z, time + offset_z));
-  float d_y1_x = snoise(vec4(position.x, position.y + fda, position.z, time + offset_x));
-  float d_y1_z = snoise(vec4(position.x, position.y + fda, position.z, time + offset_z));
+  float d_y0_x = snoise(vec4(pos.x, pos.y - fda, pos.z, time + offset_x));
+  float d_y0_z = snoise(vec4(pos.x, pos.y - fda, pos.z, time + offset_z));
+  float d_y1_x = snoise(vec4(pos.x, pos.y + fda, pos.z, time + offset_x));
+  float d_y1_z = snoise(vec4(pos.x, pos.y + fda, pos.z, time + offset_z));
 
-  float d_z0_x = snoise(vec4(position.x, position.y, position.z - fda, time + offset_x));
-  float d_z0_y = snoise(vec4(position.x, position.y, position.z - fda, time + offset_y));
-  float d_z1_x = snoise(vec4(position.x, position.y, position.z + fda, time + offset_x));
-  float d_z1_y = snoise(vec4(position.x, position.y, position.z + fda, time + offset_y));
+  float d_z0_x = snoise(vec4(pos.x, pos.y, pos.z - fda, time + offset_x));
+  float d_z0_y = snoise(vec4(pos.x, pos.y, pos.z - fda, time + offset_y));
+  float d_z1_x = snoise(vec4(pos.x, pos.y, pos.z + fda, time + offset_x));
+  float d_z1_y = snoise(vec4(pos.x, pos.y, pos.z + fda, time + offset_y));
 
-  float curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * fda);
-  float curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * fda);
-  float curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * fda);
+  float curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * fda) * speed;
+  float curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * fda) * speed;
+  float curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * fda) * speed;
+  vec3 curl_effect = vec3(curl_x, curl_y, curl_z);
+  float velocity = distance(vec3(0.0), curl_effect);
 
-  // return vec3(curl_x, curl_y, curl_z) / sqrt(curl_x * curl_x + curl_y * curl_y + curl_z * curl_z);
-  return vec4(curl_x, curl_y, curl_z, sqrt(curl_x * curl_x + curl_y * curl_y + curl_z * curl_z));
+  return vec4(position.xyz + curl_effect, velocity);
 }
 
 void main() {
  
-    vec4 pos = vec4(texture2D(positions, uv_pos).stp, 0.0);
+    vec4 pos = texture2D(positions, uv_pos);
+
+    if (y_pos > -5.6) {
+
+      float alpha = min(1.0, max(0.0, y_pos / 1.6 + 1.0));
+
+      vec3 target_pos = ((texture2D(cube_positions, uv_pos).xyz * alpha) + (texture2D(sphere_positions, uv_pos).xyz * (1.0 - alpha)));
+      
+      pos.xyz += (target_pos - pos.xyz) * 0.1;
+
+      pos.y -= y_pos * 0.1;
+      pos.w = curlify(pos, time).w * (1.0 + (y_pos + 5.6));
+
+    } else if (y_pos > -9.6) {
+
+      if (pos.y > 9.6) {
+        pos.y -= 6.4;
+      }
+
+      pos = curlify(pos, time);
+
+      pos.xz *= 0.998;
+      pos.y += 0.01;
+    }
 
     // xyzw, rgba, stpq
 
-    if (pos.y > 3.2) {
-      pos.y -= 6.4;
-    }
-    // } else if (pos.y < -3.2) {
-    //   pos.y += 0.01;
-    // }
 
-    pos += curlify(pos, time) * 0.005;
-
-    pos.x *= 0.998;
-    pos.y += 0.01;
-    pos.z *= 0.998;
 
     gl_FragColor = pos;
 }

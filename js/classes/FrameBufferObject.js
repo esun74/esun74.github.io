@@ -3,6 +3,7 @@ import * as THREE from 'https://cdn.skypack.dev/three'
 export default class FBO {
 	constructor(size, renderer, files) {
 
+		this.size = size
 		this.renderer = renderer
 
 		this.scene = new THREE.Scene()
@@ -42,7 +43,8 @@ export default class FBO {
 		))
 
 		let length = size * size
-		let data = new Float32Array(length * 4)
+
+		this.sphere_position_array = new Float32Array(length * 4)
 		for (let i = 0; i < length * 4; i += 4) {
 
 			var phi = Math.random() * 2 * Math.PI
@@ -52,14 +54,26 @@ export default class FBO {
 			var theta = Math.acos(cos_theta)
 			var r = 1 * Math.cbrt(u)
 
-			data[i + 0] = r * Math.sin(theta) * Math.cos(phi)
-			data[i + 1] = r * Math.sin(theta) * Math.sin(phi)
-			data[i + 2] = r * Math.cos(theta)
+			this.sphere_position_array[i + 0] = r * Math.sin(theta) * Math.cos(phi)
+			this.sphere_position_array[i + 1] = r * Math.sin(theta) * Math.sin(phi)
+			this.sphere_position_array[i + 2] = r * Math.cos(theta)
 
-			data[i + 3] = 0
+			this.sphere_position_array[i + 3] = 0.5
 		}
+		const sphere_positions = new THREE.DataTexture(this.sphere_position_array, size, size, THREE.RGBAFormat, THREE.FloatType)
 
-		const data_positions = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType)
+		this.cube_position_array = new Float32Array(length * 4)
+		for (let i = 0; i < length * 4; i += 4) {
+
+			this.cube_position_array[i + 0] = (Math.random() - 0.5) * 1.0
+			this.cube_position_array[i + 1] = (Math.random() - 0.5) * 6.5
+			this.cube_position_array[i + 2] = (Math.random() - 0.5) * 1000.0
+
+			this.cube_position_array[i + 3] = 0.5
+		}
+		const cube_positions = new THREE.DataTexture(this.cube_position_array, size, size, THREE.RGBAFormat, THREE.FloatType)
+
+		const data_positions = new THREE.DataTexture(this.sphere_position_array, size, size, THREE.RGBAFormat, THREE.FloatType)
 		data_positions.needsUpdate = true
 
 		this.simulation_material = new THREE.ShaderMaterial({
@@ -67,12 +81,15 @@ export default class FBO {
 			fragmentShader: files.items['glsl/simulation.frag'],
 			uniforms: {
 				positions: {value: data_positions},
+				sphere_positions: {value: sphere_positions},
+				cube_positions: {value: cube_positions},
 				time: {value: 0},
+				mode: {value: 0},
+				y_pos: {value: 0}
 			},
 			depthTest: false,
 		})
 
-		this.simulation_material.needsUpdate = true
 		this.mesh = new THREE.Mesh(simulation_geometry, this.simulation_material)
 		this.scene.add(this.mesh)
 
@@ -99,6 +116,8 @@ export default class FBO {
 				c: {value: [1.0, 1.0, 1.0]},
 				d: {value: [0.0, 0.1, 0.2]},
 
+				y_pos: {value: 0},
+
 			},
 			transparent: true,
 			blending: THREE.AdditiveBlending,
@@ -121,10 +140,13 @@ export default class FBO {
 
 	}
 
-	update() {
+	update(y_pos) {
 
 		this.mesh.material.uniforms.time.value = this.time
 		this.time += 0.0005
+
+		this.mesh.material.uniforms.y_pos.value = y_pos
+		this.particles.material.uniforms.y_pos.value = y_pos
 
 		if (this.flip) {
 			this.particles.material.uniforms.positions.value = this.renderTargetTexture.texture

@@ -1,13 +1,10 @@
 import * as THREE from 'https://cdn.skypack.dev/three'
 import Retriever from '/js/classes/Retriever.js'
-import Swirls from '/js/classes/Afterimage.js'
 import FBO from '/js/classes/FrameBufferObject.js'
 
 console.log(THREE.REVISION)
 
 var files = new Retriever([
-	'glsl/afterimage.vert',
-	'glsl/afterimage.frag',
 	'glsl/simulation.vert',
 	'glsl/simulation.frag',
 	'glsl/particles.vert',
@@ -46,11 +43,9 @@ var camera = new THREE.OrthographicCamera(
 	window.innerWidth / 2, 
 	window.innerHeight / 2, 
 	window.innerHeight / - 2, 
-	4, 6
-
-	// -100, 100
+	0, 100,
 	)
-camera.position.set(0, 0, 10)
+camera.position.set(0, 0, 5)
 camera.lookAt(0, 0, 0)
 camera.zoom = window.innerWidth / 10
 camera.updateProjectionMatrix()
@@ -232,15 +227,6 @@ var animate = function () {
 			files.items['fonts/montserrat-light-normal-300.json'] = font_loader.parse(files.items['fonts/montserrat-light-normal-300.json'])
 			files.items['fonts/montserrat-thin-normal-100.json'] = font_loader.parse(files.items['fonts/montserrat-thin-normal-100.json'])
 
-			line_01 = new Swirls(instances, 10, files.items)
-			line_01.mesh.position.set(0, 0, 0)
-			objects.add(line_01.mesh)
-
-			line_02 = new Swirls(instances, 10, files.items)
-			line_02.mesh.position.set(0, 0, 0)
-			objects.add(line_02.mesh)
-
-
 			for (let i in files.items['js/text.json'].content) {
 
 				i = files.items['js/text.json'].content[i]
@@ -283,11 +269,10 @@ var animate = function () {
 				renderer, 
 				files,
 			)
-			cloud.particles.position.set(0, 6.4, 0)
-			cloud.particles.visible = false
+			
 			cloud.particles.frustumCulled = false
 			objects.add(cloud.particles)
-
+			cloud.update(camera.position.y)
 
 			console.log('Stage 1 -> Stage 2')
 			stage++
@@ -295,86 +280,27 @@ var animate = function () {
 		}
 
 	} else if (stage == 1) {
-		if (camera.position.z > 5) {
 
-			camera.position.z += (4.95 - camera.position.z) / 20
+		font_material.opacity = (3 * objects.rotation.y + Math.PI) / -2
 
-			line_01.update()
-			line_02.update()
-			
-		} else {
+		objects.rotation.y += (-1.57 - objects.rotation.y) / 10
+		objects.rotation.z -= (objects.rotation.z + -1.57 * 2) / 10
 
-			console.log('Creating Text: \nScroll Down')
+		cloud.update(camera.position.y)
 
-			var text_geometry = new THREE.ShapeGeometry(files.items['fonts/montserrat-light-normal-300.json'].generateShapes("Scroll Down", 0.1))
-
-			text_geometry.computeBoundingBox()
-			text_geometry.translate(
-				(text_geometry.boundingBox.min.x - text_geometry.boundingBox.max.x) / 2 + 3.6, 
-				(text_geometry.boundingBox.max.y - text_geometry.boundingBox.min.y) / 2 - 2.4, 
-				0
-			)
-
-			objects.add(new THREE.Mesh(
-				text_geometry, 
-				font_material2))
-
-			camera.position.z = 5
-			vertical_target = 0
+		if (objects.rotation.y < -1.565) {
+			objects.rotation.y = -1.57
 
 			console.log('Stage 2 -> Stage 3')
 			stage++
-
 		}
 		
 	} else if (stage == 2) {
 
-		font_material.opacity = (3 * objects.rotation.y + Math.PI) / -2
-		font_material2.opacity += (Math.min(vertical_target * 5 + 1, 0.5) - font_material2.opacity) / 10
+		camera.position.y += (vertical_target - camera.position.y) / 5
+		cloud.update(camera.position.y)
 
-		objects.rotation.y += (Math.max(vertical_target, -1.57) - objects.rotation.y) / 10
-		objects.rotation.z -= (objects.rotation.z + Math.max(vertical_target, -1.57) * 2) / 10
-
-		if (objects.rotation.y < -1.565) {
-			objects.rotation.y = -1.57
-			vertical_target = -1.57
-			cloud.particles.visible = true
-
-			console.log('Stage 3 -> Stage 4')
-			stage++
-		}
-
-		line_01.update()
-		line_02.update()
-
-	} else if (stage == 3) {
-
-		camera.position.y += +((vertical_target + 1.57) * 2 - camera.position.y) / 5
-
-		camera.far = 6 - camera.position.y
-		camera.near = 4 + camera.position.y
-		camera.updateProjectionMatrix()
-
-		if (camera.position.y > 0) {
-			camera.position.y = 0
-			camera.far = 6
-			camera.near = 4
-			camera.updateProjectionMatrix()
-			cloud.particles.visible = false
-
-			console.log('Stage 4 -> Stage 3')
-			stage--
-		}
-
-		if (camera.position.y > -3.6) {
-			line_01.update()
-			line_02.update()
-		} else {
-			cloud.update()
-		}
-		
 	}
-
 
 	renderer.render(scene, camera)
 	stats.end()
