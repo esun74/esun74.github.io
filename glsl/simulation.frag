@@ -148,23 +148,26 @@ vec4 curlify(vec4 position, float time) {
   vec3 curl_effect = vec3(curl_x, curl_y, curl_z);
   float velocity = distance(vec3(0.0), curl_effect);
 
-  return vec4(position.xyz + curl_effect, velocity);
+  return vec4(curl_effect, velocity);
 }
 
 void main() {
  
     vec4 pos = texture2D(positions, uv_pos);
 
-    if (y_pos > -5.6) {
+    if (y_pos > -4.8) {
 
-      float alpha = min(1.0, max(0.0, y_pos / 1.6 + 1.0));
+      float alpha = min(1.0, max(0.0, -y_pos / 1.6));
 
-      vec3 target_pos = ((texture2D(cube_positions, uv_pos).xyz * alpha) + (texture2D(sphere_positions, uv_pos).xyz * (1.0 - alpha)));
-      
-      pos.xyz += (target_pos - pos.xyz) * 0.1;
+      vec4 c_effect = curlify(pos, time);
+      vec3 c_target = texture2D(cube_positions, uv_pos).xyz;
+      vec3 s_target = texture2D(sphere_positions, uv_pos).xyz + c_effect.xyz * 25.0;
+      vec3 target_pos = ((c_target * (1.0 - alpha)) + (s_target * alpha));
+      target_pos.y -= y_pos;
 
-      pos.y -= y_pos * 0.1;
-      pos.w = curlify(pos, time).w * (1.0 + (y_pos + 5.6));
+      pos.xyz += (target_pos - pos.xyz) * abs((alpha - 0.5) * 1.0);
+
+      pos.w = c_effect.w * (1.0 + (y_pos + 4.8));
 
     } else if (y_pos > -9.6) {
 
@@ -172,10 +175,12 @@ void main() {
         pos.y -= 6.4;
       }
 
-      pos = curlify(pos, time);
-
+      vec4 c_effect = curlify(pos, time);
+      pos.xyz += c_effect.xyz;
       pos.xz *= 0.998;
       pos.y += 0.01;
+      pos.w = c_effect.w;
+
     }
 
     // xyzw, rgba, stpq
