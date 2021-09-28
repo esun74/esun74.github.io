@@ -65,9 +65,9 @@ export default class FBO {
 		this.cube_position_array = new Float32Array(length * 4)
 		for (let i = 0; i < length * 4; i += 4) {
 
-			this.cube_position_array[i + 0] = (Math.random() - 0.5) * 1.0
-			this.cube_position_array[i + 1] = (Math.random() - 0.5) * 6.5
-			this.cube_position_array[i + 2] = (Math.random() - 0.5) * 1000.0
+			this.cube_position_array[i + 0] = (Math.random() - 0.5)
+			this.cube_position_array[i + 1] = (Math.random() - 0.5)
+			this.cube_position_array[i + 2] = (Math.random() - 0.5)
 
 			this.cube_position_array[i + 3] = 0.5
 		}

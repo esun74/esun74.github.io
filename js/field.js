@@ -60,83 +60,85 @@ var vertical_target_max = 0
 var vertical_target_min = -7.97
 var currently_clicking = false
 
-window.addEventListener('mousedown', e => {
-	currently_clicking = true
-}, {passive: false})
+// window.addEventListener('mousedown', e => {
+// 	currently_clicking = true
+// }, {passive: false})
 
-window.addEventListener('mousemove', e => {
-	var new_x = +(e.clientX / window.innerWidth) * 2 - 1
-	var new_y = -(e.clientY / window.innerHeight) * 2 + 1
+// window.addEventListener('mousemove', e => {
+// 	var new_x = +(e.clientX / window.innerWidth) * 2 - 1
+// 	// var new_y = -(e.clientY / window.innerHeight) * 2 + 1
 
-	if (currently_clicking) {
-		vertical_target = Math.max(
-			vertical_target_min, 
-			Math.min(
-				vertical_target_max, 
-				vertical_target - (new_y - mouse.y) * 1.2
-			)
-		)
+// 	camera.position.x = new_x
+// 	// camera.lookAt(new_x, camera.position.y, -10)
+// 	// camera.updateProjectionMatrix()
 
-		objects.rotation.y = +Math.max(vertical_target, -1.57)
-		objects.rotation.z = -Math.max(vertical_target, -1.57) * 2
-	}
+// 	// if (currently_clicking) {
+// 	// 	vertical_target = Math.max(
+// 	// 		vertical_target_min, 
+// 	// 		Math.min(
+// 	// 			vertical_target_max, 
+// 	// 			vertical_target - (new_y - mouse.y) * 1.2
+// 	// 		)
+// 	// 	)
 
-	mouse.x = new_x
-	mouse.y = new_y
-}, {passive: false})
+// 	// }
 
-window.addEventListener('mouseup', e => {
-	currently_clicking = false
-}, {passive: false})
+// 	// mouse.x = new_x
+// 	// mouse.y = new_y
+// }, {passive: false})
 
-window.addEventListener('touchstart', e => {
-	e.preventDefault()
-	if (!e.changedTouches[0].identifier) {
-		console.log('Touch Start')
-		mouse.x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
-		mouse.y = -(e.touches[0].screenY / e.touches[0].clientY) * 2 + 1
-	} else {
-		console.log('DUPE TOUCH START')
-	}
-}, {passive: false})
+// window.addEventListener('mouseup', e => {
+// 	currently_clicking = false
+// }, {passive: false})
 
-window.addEventListener('touchmove', e => {
-	var new_x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
-	var new_y = -(e.touches[0].screenY / e.touches[0].clientY) * 2 + 1
+// window.addEventListener('touchstart', e => {
+// 	e.preventDefault()
+// 	if (!e.changedTouches[0].identifier) {
+// 		console.log('Touch Start')
+// 		mouse.x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
+// 		mouse.y = -(e.touches[0].screenY / e.touches[0].clientY) * 2 + 1
+// 	} else {
+// 		console.log('DUPE TOUCH START')
+// 	}
+// }, {passive: false})
 
-	vertical_target = Math.max(
-		vertical_target_min, 
-		Math.min(
-			vertical_target_max, 
-			vertical_target - (mouse.y - new_y) * 2
-		)
-	)
+// window.addEventListener('touchmove', e => {
+// 	var new_x = +(e.touches[0].screenX / e.touches[0].clientX) * 2 - 1
+// 	var new_y = -(e.touches[0].screenY / e.touches[0].clientY) * 2 + 1
 
-	objects.rotation.y = +Math.max(vertical_target, -1.57)
-	objects.rotation.z = -Math.max(vertical_target, -1.57) * 2
+// 	vertical_target = Math.max(
+// 		vertical_target_min, 
+// 		Math.min(
+// 			vertical_target_max, 
+// 			vertical_target - (mouse.y - new_y) * 2
+// 		)
+// 	)
 
-	mouse.x = new_x
-	mouse.y = new_y
-}, {passive: false})
-window.addEventListener('touchforcechange', e => {e.preventDefault()}, {passive: false})
+// 	objects.rotation.y = +Math.max(vertical_target, -1.57)
+// 	objects.rotation.z = -Math.max(vertical_target, -1.57) * 2
 
-window.addEventListener('touchend', e => {
-	if (!e.changedTouches[0].identifier) {
-		console.log('Touch End')
-	} else {
-		console.log('DUPE TOUCH END')
-	}
-}, {passive: false})
+// 	mouse.x = new_x
+// 	mouse.y = new_y
+// }, {passive: false})
+// window.addEventListener('touchforcechange', e => {e.preventDefault()}, {passive: false})
+
+// window.addEventListener('touchend', e => {
+// 	if (!e.changedTouches[0].identifier) {
+// 		console.log('Touch End')
+// 	} else {
+// 		console.log('DUPE TOUCH END')
+// 	}
+// }, {passive: false})
 
 window.addEventListener('wheel', e => {
-	vertical_target = Math.max(vertical_target_min, Math.min(vertical_target_max, vertical_target - event.deltaY / 250))
+	vertical_target = Math.max(vertical_target_min, Math.min(vertical_target_max, vertical_target - event.deltaY / 125))
 }, {passive: false});
 
 //--------------------------------------------------
 
 // Configuring the Renderer and adding it to the DOM
 //--------------------------------------------------
-var renderer = new THREE.WebGLRenderer({alpha: true, antialias: true})
+var renderer = new THREE.WebGLRenderer({alpha: true, antialias: false})
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)

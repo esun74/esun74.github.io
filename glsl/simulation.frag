@@ -155,19 +155,22 @@ void main() {
  
     vec4 pos = texture2D(positions, uv_pos);
 
-    if (y_pos > -4.8) {
+    if (y_pos > -5.0) {
 
       float alpha = min(1.0, max(0.0, -y_pos / 1.6));
 
       vec4 c_effect = curlify(pos, time);
       vec3 c_target = texture2D(cube_positions, uv_pos).xyz;
+      c_target.x *= 500.0;
+      c_target.y *= 6.5;
+      c_target.z *= 500.0;
+
       vec3 s_target = texture2D(sphere_positions, uv_pos).xyz + c_effect.xyz * 25.0;
       vec3 target_pos = ((c_target * (1.0 - alpha)) + (s_target * alpha));
       target_pos.y -= y_pos;
-
+      
       pos.xyz += (target_pos - pos.xyz) * abs((alpha - 0.5) * 1.0);
-
-      pos.w = c_effect.w * (1.0 + (y_pos + 4.8));
+      pos.w = c_effect.w * (1.0 + (y_pos + 5.0));
 
     } else if (y_pos > -9.6) {
 
