@@ -21,9 +21,9 @@ var files = new Retriever([
 
 // Performance Statistics
 //--------------------------------------------------
-var stats = new Stats()
-stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
-document.body.appendChild(stats.dom)
+// var stats = new Stats()
+// stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
+// document.body.appendChild(stats.dom)
 // document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
 
@@ -216,7 +216,7 @@ objects.add(new THREE.LineSegments(misc_line_geometry, font_material))
 //--------------------------------------------------
 
 var animate = function () {
-	stats.begin()
+	// stats.begin()
 	requestAnimationFrame(animate)
 	// raycaster.setFromCamera(mouse, camera)
 
@@ -307,7 +307,7 @@ var animate = function () {
 	}
 
 	renderer.render(scene, camera)
-	stats.end()
+	// stats.end()
 }
 //--------------------------------------------------
 
