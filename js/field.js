@@ -1,4 +1,6 @@
-import * as THREE from 'https://cdn.skypack.dev/three'
+import * as THREE from 'https://cdn.skypack.dev/three@0.132.0'
+// When updating past 132:
+// import { FontLoader } from 'https://cdn.skypack.dev/three/examples/jsm/loaders/FontLoader.js'
 import Retriever from '/js/classes/Retriever.js'
 import FBO from '/js/classes/FrameBufferObject.js'
 

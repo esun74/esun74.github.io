@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.skypack.dev/three'
+import * as THREE from 'https://cdn.skypack.dev/three@0.132.0'
 
 export default class FBO {
 	constructor(size, renderer, files) {
