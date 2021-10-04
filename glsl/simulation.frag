@@ -4,7 +4,6 @@ uniform sampler2D cube_positions;
 uniform float y_pos;
 uniform float time;
 varying vec2 uv_pos;
-// in float time;
 
 // Description : Array and textureless GLSL 2D/3D/4D simplex 
 //               noise functions.
@@ -115,8 +114,9 @@ float snoise(vec4 v) {
           + dot(m1*m1, vec2(dot(p3, x3), dot(p4, x4))));
 }
 
+// End
 
-vec4 curlify(vec4 position, float time) {
+vec4 c_curl(vec4 position, float time) {
 
   float offset_x = 100.0;
   float offset_y = 200.0;
@@ -145,6 +145,7 @@ vec4 curlify(vec4 position, float time) {
   float curl_x = (d_y1_z - d_y0_z - d_z1_y + d_z0_y) / (2.0 * fda) * speed;
   float curl_y = (d_z1_x - d_z0_x - d_x1_z + d_x0_z) / (2.0 * fda) * speed;
   float curl_z = (d_x1_y - d_x0_y - d_y1_x + d_y0_x) / (2.0 * fda) * speed;
+
   vec3 curl_effect = vec3(curl_x, curl_y, curl_z);
   float velocity = distance(vec3(0.0), curl_effect);
 
@@ -154,23 +155,23 @@ vec4 curlify(vec4 position, float time) {
 void main() {
  
     vec4 pos = texture2D(positions, uv_pos);
+    vec4 c_effect = c_curl(pos, time);
 
     if (y_pos > -5.0) {
-
-      float alpha = min(1.0, max(0.0, -y_pos / 1.6));
-
-      vec4 c_effect = curlify(pos, time);
-      vec3 c_target = texture2D(cube_positions, uv_pos).xyz;
+      
+      vec4 c_target = texture2D(cube_positions, uv_pos);
       c_target.x *= 500.0;
       c_target.y *= 6.5;
       c_target.z *= 500.0;
+      c_target.w = c_effect.w * (1.0 + (y_pos + 5.0));
 
-      vec3 s_target = texture2D(sphere_positions, uv_pos).xyz + c_effect.xyz * 25.0;
-      vec3 target_pos = ((c_target * (1.0 - alpha)) + (s_target * alpha));
-      target_pos.y -= y_pos;
-      
-      pos.xyz += (target_pos - pos.xyz) * abs((alpha - 0.5) * 1.0);
-      pos.w = c_effect.w * (1.0 + (y_pos + 5.0));
+      vec4 s_target = mix(
+        texture2D(sphere_positions, uv_pos) - vec4(0.0, y_pos, 0.0, 0.0), 
+        pos + c_effect, 
+        min(0.98, max(0.0, -y_pos / 3.6))
+      );
+      s_target.w = c_effect.w;
+      pos = mix(c_target, s_target, min(1.0, max(0.0, -y_pos / 1.6)));
 
     } else if (y_pos > -9.6) {
 
@@ -178,17 +179,12 @@ void main() {
         pos.y -= 6.4;
       }
 
-      vec4 c_effect = curlify(pos, time);
       pos.xyz += c_effect.xyz;
       pos.xz *= 0.998;
       pos.y += 0.01;
       pos.w = c_effect.w;
 
     }
-
-    // xyzw, rgba, stpq
-
-
 
     gl_FragColor = pos;
 }

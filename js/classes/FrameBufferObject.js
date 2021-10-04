@@ -95,9 +95,8 @@ export default class FBO {
 
 		let vertices = new Float32Array(length * 3)
 		for (let i = 0; i < length; i++) {
-			let i3 = i * 3
-			vertices[i3 + 0] = (i % size) / size
-			vertices[i3 + 1] = (i / size) / size
+			vertices[i * 3 + 0] = (i % size) / size
+			vertices[i * 3 + 1] = (i / size) / size
 		}
 
 		const particle_geometry = new THREE.BufferGeometry()
@@ -127,14 +126,14 @@ export default class FBO {
 			particle_geometry, 
 			this.particle_material
 		)
+		this.particles.frustumCulled = false
 
-		this.notRenderTargetTexture = this.renderTargetTexture.clone()
+		this.otherRenderTargetTexture = this.renderTargetTexture.clone()
 		this.flip = true
 
 		this.renderer.setRenderTarget(this.renderTargetTexture)
 		this.renderer.render(this.scene, this.camera)
 		this.renderer.setRenderTarget(null)
-		// this.renderer.clear()
 
 		this.time = Math.random() * 100
 
@@ -151,10 +150,10 @@ export default class FBO {
 		if (this.flip) {
 			this.particles.material.uniforms.positions.value = this.renderTargetTexture.texture
 			this.mesh.material.uniforms.positions.value = this.renderTargetTexture.texture
-			this.renderer.setRenderTarget(this.notRenderTargetTexture)
+			this.renderer.setRenderTarget(this.otherRenderTargetTexture)
 		} else {
-			this.particles.material.uniforms.positions.value = this.notRenderTargetTexture.texture
-			this.mesh.material.uniforms.positions.value = this.notRenderTargetTexture.texture
+			this.particles.material.uniforms.positions.value = this.otherRenderTargetTexture.texture
+			this.mesh.material.uniforms.positions.value = this.otherRenderTargetTexture.texture
 			this.renderer.setRenderTarget(this.renderTargetTexture)
 		}
 

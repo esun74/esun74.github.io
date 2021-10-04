@@ -59,7 +59,7 @@ var raycaster = new THREE.Raycaster()
 var mouse = new THREE.Vector2()
 var vertical_target = 0
 var vertical_target_max = 0
-var vertical_target_min = -7.97
+var vertical_target_min = -12.8
 var currently_clicking = false
 
 // window.addEventListener('mousedown', e => {
@@ -249,32 +249,12 @@ var animate = function () {
 
 			}
 
-
-
-			// for (let i = 0; i < 25; i++) {
-
-			// 	let test_text = Math.random().toString(36).substr(2, 14)
-			// 	let text_shape = new THREE.ShapeGeometry(files.items['fonts/montserrat-thin-normal-100.json'].generateShapes(test_text, 0.1))
-			// 	text_shape.computeBoundingBox()
-			// 	text_shape.translate(
-			// 		(text_shape.boundingBox.min.x - text_shape.boundingBox.max.x) / 2 + (Math.random() - 0.5) * 9.0, 
-			// 		(text_shape.boundingBox.max.y - text_shape.boundingBox.min.y) / 2 + (Math.random() - 1.8) * 5.0, 
-			// 		(Math.random() - 0.5)
-			// 	)
-			// 	text_shape.rotateX(Math.PI * 1.0)
-			// 	text_shape.rotateY(Math.PI * 0.5)
-
-			// 	objects.add(new THREE.Mesh(text_shape, font_material))
-
-			// }
-
 			cloud = new FBO(
 				Math.pow(2, 8),
 				renderer, 
 				files,
 			)
 			
-			cloud.particles.frustumCulled = false
 			objects.add(cloud.particles)
 			cloud.update(camera.position.y)
 
@@ -292,8 +272,9 @@ var animate = function () {
 
 		cloud.update(camera.position.y)
 
-		if (objects.rotation.y < -1.565) {
+		if (objects.rotation.y < -1.56999) {
 			objects.rotation.y = -1.57
+			vertical_target = 0
 
 			console.log('Stage 2 -> Stage 3')
 			stage++
