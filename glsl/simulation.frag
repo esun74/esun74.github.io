@@ -157,23 +157,25 @@ void main() {
     vec4 pos = texture2D(positions, uv_pos);
     vec4 c_effect = c_curl(pos, time);
 
-    if (y_pos > -5.0) {
+    if (y_pos > -4.5) {
       
       vec4 c_target = texture2D(cube_positions, uv_pos);
-      c_target.x *= 500.0;
-      c_target.y *= 6.5;
-      c_target.z *= 500.0;
+      c_target.x *= 5.0;
+      c_target.x -= 2.5;
+      c_target.y *= 7.0;
+      c_target.y -= y_pos;
+      c_target.z *= 12.0;
       c_target.w = c_effect.w * (1.0 + (y_pos + 5.0));
 
       vec4 s_target = mix(
         texture2D(sphere_positions, uv_pos) - vec4(0.0, y_pos, 0.0, 0.0), 
         pos + c_effect, 
-        min(0.98, max(0.0, -y_pos / 3.6))
+        min(0.98, max(0.0, -y_pos * 0.5))
       );
       s_target.w = c_effect.w;
       pos = mix(c_target, s_target, min(1.0, max(0.0, -y_pos / 1.6)));
 
-    } else if (y_pos > -9.6) {
+    } else if (y_pos > -7.5) {
 
       if (pos.y > 9.6) {
         pos.y -= 6.4;
@@ -183,6 +185,17 @@ void main() {
       pos.xz *= 0.998;
       pos.y += 0.01;
       pos.w = c_effect.w;
+
+    } else if (y_pos > -1000.0) {
+
+      vec4 s_target = mix(
+        texture2D(sphere_positions, uv_pos) - vec4(0.0, y_pos, 0.0, 0.0), 
+        pos + c_effect, 
+        min(0.98, max(0.0, -y_pos / 2.4))
+      );
+      s_target.w = c_effect.w;
+
+      pos = s_target;
 
     }
 

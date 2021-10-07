@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.132.0'
 // When updating past 132:
 // import { FontLoader } from 'https://cdn.skypack.dev/three/examples/jsm/loaders/FontLoader.js'
+import Stats from 'https://cdn.skypack.dev/stats.js.fps'
 import Retriever from '/js/classes/Retriever.js'
 import FBO from '/js/classes/FrameBufferObject.js'
 
@@ -21,9 +22,9 @@ var files = new Retriever([
 
 // Performance Statistics
 //--------------------------------------------------
-// var stats = new Stats()
-// stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
-// document.body.appendChild(stats.dom)
+var stats = new Stats()
+stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild(stats.dom)
 // document.body.addEventListener('click', () => {window.location.reload()}, true)
 //--------------------------------------------------
 
@@ -61,6 +62,8 @@ var vertical_target = 0
 var vertical_target_max = 0
 var vertical_target_min = -12.8
 var currently_clicking = false
+var x_target = -Math.PI / 2
+var y_target = 0
 
 // window.addEventListener('mousedown', e => {
 // 	currently_clicking = true
@@ -70,7 +73,8 @@ var currently_clicking = false
 // 	var new_x = +(e.clientX / window.innerWidth) * 2 - 1
 // 	// var new_y = -(e.clientY / window.innerHeight) * 2 + 1
 
-// 	camera.position.x = new_x
+// 	// camera.position.x = new_x
+// 	objects.rotation.y = new_x - Math.PI / 2
 // 	// camera.lookAt(new_x, camera.position.y, -10)
 // 	// camera.updateProjectionMatrix()
 
@@ -216,7 +220,7 @@ objects.add(new THREE.LineSegments(misc_line_geometry, font_material))
 //--------------------------------------------------
 
 var animate = function () {
-	// stats.begin()
+	stats.begin()
 	requestAnimationFrame(animate)
 	// raycaster.setFromCamera(mouse, camera)
 
@@ -250,7 +254,7 @@ var animate = function () {
 			}
 
 			cloud = new FBO(
-				Math.pow(2, 8),
+				Math.pow(2, 7),
 				renderer, 
 				files,
 			)
@@ -276,6 +280,16 @@ var animate = function () {
 			objects.rotation.y = -1.57
 			vertical_target = 0
 
+
+			window.addEventListener('mousemove', e => {
+				let new_x = +(e.clientX / window.innerWidth) * 2 - 1
+				let new_y = -(e.clientY / window.innerHeight) * 2 + 1
+
+				x_target = -new_x / 8 - Math.PI / 2
+				y_target = -new_y / 32
+
+			}, {passive: false})
+
 			console.log('Stage 2 -> Stage 3')
 			stage++
 		}
@@ -283,12 +297,14 @@ var animate = function () {
 	} else if (stage == 2) {
 
 		camera.position.y += (vertical_target - camera.position.y) / 5
+		objects.rotation.y += (x_target - objects.rotation.y) / 10
+		camera.rotation.x += (y_target - camera.rotation.x) / 10
 		cloud.update(camera.position.y)
 
 	}
 
 	renderer.render(scene, camera)
-	// stats.end()
+	stats.end()
 }
 //--------------------------------------------------
 
