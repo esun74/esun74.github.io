@@ -63,39 +63,11 @@ var vertical_target_max = 0
 var vertical_target_min = -12.8
 var currently_clicking = false
 var x_target = -Math.PI / 2
+var x_begin = 0
 var y_target = 0
+var y_begin = 0
 
-// window.addEventListener('mousedown', e => {
-// 	currently_clicking = true
-// }, {passive: false})
 
-// window.addEventListener('mousemove', e => {
-// 	var new_x = +(e.clientX / window.innerWidth) * 2 - 1
-// 	// var new_y = -(e.clientY / window.innerHeight) * 2 + 1
-
-// 	// camera.position.x = new_x
-// 	objects.rotation.y = new_x - Math.PI / 2
-// 	// camera.lookAt(new_x, camera.position.y, -10)
-// 	// camera.updateProjectionMatrix()
-
-// 	// if (currently_clicking) {
-// 	// 	vertical_target = Math.max(
-// 	// 		vertical_target_min, 
-// 	// 		Math.min(
-// 	// 			vertical_target_max, 
-// 	// 			vertical_target - (new_y - mouse.y) * 1.2
-// 	// 		)
-// 	// 	)
-
-// 	// }
-
-// 	// mouse.x = new_x
-// 	// mouse.y = new_y
-// }, {passive: false})
-
-// window.addEventListener('mouseup', e => {
-// 	currently_clicking = false
-// }, {passive: false})
 
 // window.addEventListener('touchstart', e => {
 // 	e.preventDefault()
@@ -282,12 +254,28 @@ var animate = function () {
 
 
 			window.addEventListener('mousemove', e => {
+
 				let new_x = +(e.clientX / window.innerWidth) * 2 - 1
 				let new_y = -(e.clientY / window.innerHeight) * 2 + 1
 
-				x_target = -new_x / 8 - Math.PI / 2
-				y_target = -new_y / 32
+				x_target = +new_x / 32 - Math.PI / 2
+				y_target = +new_y / 128
 
+				if (currently_clicking) {
+					x_target += -(new_x - x_begin) / 2
+					y_target += -(new_y - y_begin) / 8
+				}
+
+			}, {passive: false})
+
+			window.addEventListener('mousedown', e => {
+				currently_clicking = true
+				x_begin = +(e.clientX / window.innerWidth) * 2 - 1
+				y_begin = -(e.clientY / window.innerHeight) * 2 + 1
+			}, {passive: false})
+
+			window.addEventListener('mouseup', e => {
+				currently_clicking = false
 			}, {passive: false})
 
 			console.log('Stage 2 -> Stage 3')
@@ -297,8 +285,8 @@ var animate = function () {
 	} else if (stage == 2) {
 
 		camera.position.y += (vertical_target - camera.position.y) / 5
-		objects.rotation.y += (x_target - objects.rotation.y) / 10
-		camera.rotation.x += (y_target - camera.rotation.x) / 10
+		objects.rotation.y += (x_target - objects.rotation.y) / 5
+		camera.rotation.x += (y_target - camera.rotation.x) / 5
 		cloud.update(camera.position.y)
 
 	}

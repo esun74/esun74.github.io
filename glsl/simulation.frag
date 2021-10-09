@@ -160,8 +160,8 @@ void main() {
     if (y_pos > -4.5) {
       
       vec4 c_target = texture2D(cube_positions, uv_pos);
-      c_target.x *= 5.0;
-      c_target.x -= 2.5;
+      c_target.x *= 10.0;
+      c_target.x -= 5.0;
       c_target.y *= 7.0;
       c_target.y -= y_pos;
       c_target.z *= 12.0;

@@ -14,10 +14,10 @@ void main() {
 
     vec4 pos = texture2D(positions, uv_pos);
 
-    gl_FragColor = vec4(a + b * cos(6.28318 * (c * (pos.q * 25.0) + d)), 
+    gl_FragColor = vec4(a + b * cos(6.28318 * (c * pos.q * 25.0 + d)), 
         min(1.0, max(0.1,
-            floor(fract(((uv_rel.x * 50.0) + 100.0) * uv_pos.x) + 0.1) *
-            floor(fract(((uv_rel.y * 50.0) + 100.0) * uv_pos.y) + 0.1) *
+            floor(fract(((uv_rel.x * 50.0) + 100.0) * uv_pos.x) + 0.5) *
+            floor(fract(((uv_rel.y * 50.0) + 100.0) * uv_pos.y) + 0.5) *
             floor(fract(pos.q + uv_pos.x + uv_pos.y) + 0.75) - (y_pos / 1.6)
         ) * uv_rel.z * -0.25)
     );
