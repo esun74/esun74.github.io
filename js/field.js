@@ -226,7 +226,7 @@ var animate = function () {
 			}
 
 			cloud = new FBO(
-				Math.pow(2, 7),
+				Math.pow(2, 8),
 				renderer, 
 				files,
 			)
