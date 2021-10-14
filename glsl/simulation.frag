@@ -1,6 +1,7 @@
 uniform sampler2D positions;
 uniform sampler2D sphere_positions;
 uniform sampler2D cube_positions;
+uniform vec3 mouse_position;
 uniform float y_pos;
 uniform float time;
 varying vec2 uv_pos;
@@ -157,41 +158,41 @@ void main() {
     vec4 pos = texture2D(positions, uv_pos);
     vec4 c_effect = c_curl(pos, time);
 
-    if (y_pos > -4.5) {
+    if (y_pos >= -4.5) {
       
       vec4 c_target = texture2D(cube_positions, uv_pos);
-      c_target.x *= 100.0;
-      c_target.x -= 50.0;
+      c_target.x *= 12.0;
       c_target.y *= 7.0;
-      c_target.y -= y_pos;
-      c_target.z *= 12.0;
+      c_target.y += y_pos;
+      c_target.z *= 100.0;
+      c_target.z += 50.0;
       c_target.w = c_effect.w * (1.0 + (y_pos + 5.0));
 
       vec4 s_target = mix(
-        texture2D(sphere_positions, uv_pos) - vec4(0.0, y_pos, 0.0, 0.0), 
+        texture2D(sphere_positions, uv_pos) + vec4(0.0, y_pos, 0.0, 0.0), 
         pos + c_effect, 
         min(0.98, max(0.02, -y_pos * 0.5))
       );
       s_target.w = c_effect.w;
       pos = mix(c_target, s_target, min(1.0, max(0.0, -y_pos / 1.6)));
 
-    } else if (y_pos > -7.5) {
+    } else if (y_pos >= -7.5) {
 
-      if (pos.y > 9.6) {
-        pos.y -= 6.4;
+      if (pos.y < -9.6) {
+        pos.y += 6.4;
       }
 
       pos.xyz += c_effect.xyz;
       pos.xz *= 0.998;
-      pos.y += 0.01;
+      pos.y -= 0.01;
       pos.w = c_effect.w;
 
     } else if (y_pos >= -12.8) {
 
       vec4 s_target = mix(
-        mix(texture2D(sphere_positions, uv_pos) - vec4(0.0, y_pos, 0.0, 0.0), pos + c_effect, 0.98),
-        vec4(c_effect.w * 25.0, (uv_pos.x - 0.5) * 4.0 - y_pos, (uv_pos.y - uv_pos.x) * 4.0, 0.0), 
-        max(0.0, -y_pos - 12.5)
+        mix(texture2D(sphere_positions, uv_pos) + vec4(0.0, y_pos, 0.0, 0.0), pos + c_effect, 0.98),
+        vec4((uv_pos.y - uv_pos.x) * 4.0, (uv_pos.x - 0.5) * 4.0 + y_pos, c_effect.w * 25.0, 0.0), 
+        min(0.2, max(0.0, -y_pos / 3.2 - 3.4))
       );
       s_target.w = c_effect.w;
 

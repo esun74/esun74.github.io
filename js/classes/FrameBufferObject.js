@@ -83,6 +83,7 @@ export default class FBO {
 				positions: {value: data_positions},
 				sphere_positions: {value: sphere_positions},
 				cube_positions: {value: cube_positions},
+				mouse_position: {value: [0, 0, 0]},
 				time: {value: 0},
 				mode: {value: 0},
 				y_pos: {value: 0}
@@ -139,13 +140,14 @@ export default class FBO {
 
 	}
 
-	update(y_pos) {
+	update(y_pos, mouse_position) {
 
 		this.mesh.material.uniforms.time.value = this.time
 		this.time += 0.0005
 
 		this.mesh.material.uniforms.y_pos.value = y_pos
 		this.particles.material.uniforms.y_pos.value = y_pos
+		this.mesh.material.uniforms.mouse_position.value = mouse_position
 
 		if (this.flip) {
 			this.particles.material.uniforms.positions.value = this.renderTargetTexture.texture

@@ -4,40 +4,107 @@
 			"text": "Ipsum Lorem",
 			"font": "fonts/montserrat-medium-normal-500.json",
 			"size": 0.2,
-			"x_offset": -2.6,
-			"y_offset": 1.4,
-			"z_offset": -0.75,
-			"x_rotate": 1,
-			"y_rotate": 0.5
-
+			"x_offset": -2.4,
+			"y_offset": 0.5,
+			"z_offset": -0.75
 		}, {
 			"text": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem \naccusantium doloremque laudantium, totam rem aperiam, eaque \nipsa quae ab illo inventore veritatis et quasi architecto beatae vitae \ndicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas \nsit aspernatur aut odit aut fugit, sed quia consequuntur magni \ndolores eos qui ratione voluptatem sequi nesciunt.",
 			"font": "fonts/montserrat-light-normal-300.json",
 			"size": 0.1,
-			"x_offset": 2.2,
-			"y_offset": -1.6,
-			"z_offset": -0.75,
-			"x_rotate": 1,
-			"y_rotate": 0.5
+			"x_offset": -1.2,
+			"y_offset": -0.5,
+			"z_offset": -0.75
+		}, {
+			"text": "Ut enim ad",
+			"font": "fonts/montserrat-medium-normal-500.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -4.8,
+			"z_offset": -0.75
+		}, {
+			"text": "minima veniam",
+			"font": "fonts/montserrat-regular-normal-400.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -5.0,
+			"z_offset": -0.75
 		}, {
 			"text": "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis \nsuscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis \nautem vel eum iure reprehenderit qui in ea voluptate velit esse quam \nnihil molestiae consequatur, vel illum qui dolorem eum fugiat quo \nvoluptas nulla pariatur?",
 			"font": "fonts/montserrat-light-normal-300.json",
 			"size": 0.1,
-			"x_offset": 0,
+			"x_offset": 1.2,
+			"y_offset": -5.0,
+			"z_offset": -0.75
+		}, {
+			"text": "7582432 - 5916234",
+			"font": "fonts/montserrat-thin-normal-100.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -5.2,
+			"z_offset": -0.75
+		}, {
+			"text": "Ut enim ad",
+			"font": "fonts/montserrat-medium-normal-500.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -6.2,
+			"z_offset": -0.75
+		}, {
+			"text": "minima veniam",
+			"font": "fonts/montserrat-regular-normal-400.json",
+			"size": 0.1,
+			"x_offset": -2.8,
 			"y_offset": -6.4,
-			"z_offset": -0.75,
-			"x_rotate": 1,
-			"y_rotate": 0.5
-
+			"z_offset": -0.75
+		}, {
+			"text": "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis \nsuscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis \nautem vel eum iure reprehenderit qui in ea voluptate velit esse quam \nnihil molestiae consequatur, vel illum qui dolorem eum fugiat quo \nvoluptas nulla pariatur?",
+			"font": "fonts/montserrat-light-normal-300.json",
+			"size": 0.1,
+			"x_offset": 1.2,
+			"y_offset": -6.4,
+			"z_offset": -0.75
+		}, {
+			"text": "7582432 - 5916234",
+			"font": "fonts/montserrat-thin-normal-100.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -6.6,
+			"z_offset": -0.75
+		}, {
+			"text": "Ut enim ad",
+			"font": "fonts/montserrat-medium-normal-500.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -7.6,
+			"z_offset": -0.75
+		}, {
+			"text": "minima veniam",
+			"font": "fonts/montserrat-regular-normal-400.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -7.8,
+			"z_offset": -0.75
+		}, {
+			"text": "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis \nsuscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis \nautem vel eum iure reprehenderit qui in ea voluptate velit esse quam \nnihil molestiae consequatur, vel illum qui dolorem eum fugiat quo \nvoluptas nulla pariatur?",
+			"font": "fonts/montserrat-light-normal-300.json",
+			"size": 0.1,
+			"x_offset": 1.2,
+			"y_offset": -7.8,
+			"z_offset": -0.75
+		}, {
+			"text": "7582432 - 5916234",
+			"font": "fonts/montserrat-thin-normal-100.json",
+			"size": 0.1,
+			"x_offset": -2.8,
+			"y_offset": -8.0,
+			"z_offset": -0.75
 		}, {
 			"text": "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium \nvoluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint \noccaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia \nanimi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita \ndistinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit \nquo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, \nomnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum \nnecessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non \nrecusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis \nvoluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
 			"font": "fonts/montserrat-light-normal-300.json",
 			"size": 0.1,
 			"x_offset": 0,
 			"y_offset": -12.8,
-			"z_offset": -0.75,
-			"x_rotate": 1,
-			"y_rotate": 0.5
+			"z_offset": -0.75
 		}
 	]
 }
