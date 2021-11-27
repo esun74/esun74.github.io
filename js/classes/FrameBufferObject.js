@@ -109,7 +109,7 @@ export default class FBO {
 			fragmentShader: files.items['glsl/particles.frag'],
 			uniforms: {
 				positions: {value: data_positions},
-				pointSize: {value: 1},
+				pointSize: {value: 2},
 
 				a: {value: [0.5, 0.5, 0.5]},
 				b: {value: [0.5, 0.5, 0.5]},

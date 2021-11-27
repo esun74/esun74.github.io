@@ -120,7 +120,7 @@ window.addEventListener('wheel', e => {
 
 // Configuring the Renderer and adding it to the DOM
 //--------------------------------------------------
-var renderer = new THREE.WebGLRenderer({alpha: true, antialias: true})
+var renderer = new THREE.WebGLRenderer({alpha: true, antialias: false})
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
